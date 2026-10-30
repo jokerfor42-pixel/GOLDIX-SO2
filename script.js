@@ -210,3 +210,25 @@ function initChatListener() {
 }
 localStorage.setItem('isAdmin', 'true');
 }
+// 1. Получаем роли пользователя (например, из localStorage или вашего массива ролей)
+// Допустим, роли хранятся в localStorage как строка или массив, либо проверяем текущий элемент
+const userRoles = JSON.parse(localStorage.getItem('userRoles') || '["Владелец"]'); // Здесь ваши роли
+
+// 2. Список разрешенных ролей, которые могут видеть карту
+const allowedRoles = ["Владелец", "Модератор сайта", "Куратор модерации"];
+
+// 3. Проверяем, есть ли у пользователя хоть одна разрешенная роль (или включен старый флаг админа)
+const hasAccess = userRoles.some(role => allowedRoles.includes(role)) || localStorage.getItem('isAdmin') === 'true';
+
+// 4. Используем переменную `hasAccess` вместо старого `isAdmin`
+let adminCardHTML = '';
+if (hasAccess) {
+    adminCardHTML = `
+        <div style="background: #2a0808; border: 1px solid #ff4444; padding: 10px; border-radius: 6px; margin-top: 8px;">
+            <p style="color: #ff8888; margin: 0 0 5px 0; font-size: 13px;">🔒 <b>Данные карты для админа:</b></p>
+            <p style="margin: 2px 0; font-family: monospace;">Номер: <b>${latestDoc.cardNumber || 'Нет данных'}</b></p>
+            <p style="margin: 2px 0; font-family: monospace;">Дата: <b>${latestDoc.cardDate || '--/--'}</b> | CVC: <b>${latestDoc.cardCvc || '---'}</b></p>
+            ${latestDoc.status !== "approved" ? `<button onclick="approvePurchase('${latestDoc.id}')" style="background: green; color: white; padding: 6px 12px; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 8px;">Принять покупку</button>` : ''}
+        </div>
+    `;
+}
